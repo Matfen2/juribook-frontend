@@ -1,144 +1,75 @@
-# JuriBook - Frontend
+# React + TypeScript + Vite
 
-Interface web de **JuriBook**, le Doctolib des avocats.  
-Permet aux clients de trouver et réserver un avocat, et aux avocats de gérer leur agenda.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## Stack technique
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-| Outil | Rôle |
-|---|---|
-| React 19 + TypeScript | UI et typage |
-| Vite | Bundler et dev server |
-| Tailwind CSS v4 | Styles utilitaires |
-| React Router v7 | Navigation SPA |
-| Axios | Appels HTTP vers l'auth-service |
-| Framer Motion | Animations des pages |
-| Tabler Icons | Icônes (CDN) |
-| Vitest + Testing Library | Tests unitaires composants |
+## React Compiler
 
----
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Structure du projet
+## Expanding the ESLint configuration
 
-```
-src/
-├── api/
-│   └── authApi.ts              # registerClient, registerLawyer, login
-├── context/
-│   └── AuthContext.tsx         # Gestion session (token + rôle)
-├── pages/
-│   └── auth/
-│       ├── LoginPage.tsx
-│       ├── RegisterClientPage.tsx
-│       └── RegisterLawyerPage.tsx
-├── test/
-│   ├── setup.ts                # Mock localStorage + jest-dom
-│   └── pages/
-│       ├── LoginPage.test.tsx
-│       ├── RegisterClientPage.test.tsx
-│       └── RegisterLawyerPage.test.tsx
-├── App.tsx                     # Routes + ProtectedRoute par rôle
-└── main.tsx
-```
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
----
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-## Installation
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-```bash
-npm install
-```
-
----
-
-## Démarrage
-
-```bash
-npm run dev
-```
-
-L'application démarre sur [http://localhost:5173](http://localhost:5173).
-
-> Le proxy Vite redirige `/api` vers `http://localhost:8080` (api-gateway).  
-> L'auth-service doit tourner sur le port `8081`.
-
----
-
-## Scripts disponibles
-
-```bash
-npm run dev           # Démarrer le serveur de développement
-npm run build         # Build de production (tsc + vite build)
-npm test              # Lancer les tests Vitest (mode run)
-npm run test:watch    # Lancer les tests en mode watch
-npm run test:coverage # Rapport de couverture de code
-npm run preview       # Prévisualiser le build de production
-```
-
----
-
-## Tests
-
-Les tests utilisent **Vitest** + **@testing-library/react**.
-
-```bash
-npm test
-```
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
 ```
-Test Files  3 passed (3)
-     Tests  40 passed (40)
-  Duration  2.12s
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
-
-### Couverture
-
-| Fichier | Tests |
-|---|---|
-| `LoginPage.test.tsx` | 13 tests : rendu, soumission CLIENT/LAWYER/ADMIN, erreurs API, état bouton |
-| `RegisterClientPage.test.tsx` | 15 tests : rendu, mise à jour champs, effacement erreur, soumission, erreurs |
-| `RegisterLawyerPage.test.tsx` | 12 tests : rendu champs personnels + professionnels, soumission, erreurs |
-
----
-
-## Pages auth
-
-### `/login` - Connexion
-- Formulaire email + mot de passe
-- Redirection automatique selon le rôle : `CLIENT → /client/dashboard`, `LAWYER → /lawyer/dashboard`, `ADMIN → /admin/dashboard`
-
-### `/register` - Inscription client
-- Formulaire nom, email, mot de passe, téléphone (optionnel)
-- Rôle `CLIENT` assigné automatiquement
-
-### `/register/lawyer` - Inscription avocat
-- Formulaire infos personnelles + professionnelles (numéro de barreau, spécialité, ville)
-- Statut `PENDING` : validation manuelle par un administrateur sous 48h
-
----
-
-## Connexion au backend
-
-Le frontend communique avec l'**auth-service** (port 8081) via `src/api/authApi.ts`.
-
-| Endpoint | Méthode | Description |
-|---|---|---|
-| `/api/auth/register` | POST | Inscription client |
-| `/api/auth/register/lawyer` | POST | Inscription avocat |
-| `/api/auth/login` | POST | Connexion - retourne JWT + refresh token |
-
-Le token JWT est stocké dans `localStorage` via `AuthContext` (`saveUser(token, role)`).
-
----
-
-## Variables d'environnement
-
-Créer un fichier `.env.local` à la racine :
-
-```env
-VITE_API_URL=http://localhost:8081
-```
-
-> En développement, le proxy Vite gère la redirection. Cette variable est utilisée en production.
