@@ -1,14 +1,10 @@
 import axios from 'axios'
 
-// ─ Instance axios dédiée au lawyer-service (port 8082) ─
-// On crée une instance séparée de celle de l'auth-service
-// pour cibler directement le lawyer-service sans proxy.
 const lawyerAxios = axios.create({
   baseURL: 'http://localhost:8082',
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Injecter le token JWT si présent
 lawyerAxios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
@@ -31,6 +27,7 @@ export interface Address {
   region?: string
 }
 
+// Version allégée : liste de recherche
 export interface LawyerSearchResult {
   id: number
   barNumber: string
@@ -43,6 +40,24 @@ export interface LawyerSearchResult {
   reviewCount: number
   address: Address
   specialties: Specialty[]
+}
+
+// Version complète : page détail
+export interface LawyerProfile {
+  id: number
+  authUserId: number
+  barNumber: string
+  bio?: string
+  hourlyRate?: number
+  yearsExperience?: number
+  languages?: string
+  available: boolean
+  averageRating?: number
+  reviewCount: number
+  address: Address
+  specialties: Specialty[]
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface LawyerSearchPage {
@@ -77,5 +92,6 @@ export const searchLawyers = (filters: SearchFilters = {}) => {
 export const getSpecialties = () =>
   lawyerAxios.get<Specialty[]>('/api/specialties')
 
+// Retourne le profil complet (bio non tronquée, createdAt, updatedAt)
 export const getLawyerById = (id: number) =>
-  lawyerAxios.get<LawyerSearchResult>(`/api/lawyers/${id}`)
+  lawyerAxios.get<LawyerProfile>(`/api/lawyers/${id}`)

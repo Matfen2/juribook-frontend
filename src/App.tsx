@@ -5,6 +5,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterClientPage from './pages/auth/RegisterClientPage';
 import RegisterLawyerPage from './pages/auth/RegisterLawyerPage';
 import SearchPage from './pages/search/SearchPage';
+import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
 
 // Placeholder dashboards
 const ClientDashboard = () => (
@@ -18,7 +19,6 @@ const ClientDashboard = () => (
 const LawyerDashboard = () => <div className="p-8 text-slate-700">Dashboard Avocat — Sprint 3</div>;
 const AdminDashboard  = () => <div className="p-8 text-slate-700">Dashboard Admin — Sprint 7</div>;
 
-// Route protégée par rôle
 const ProtectedRoute = ({ children, role }: { children: ReactElement; role: string }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -29,21 +29,22 @@ const ProtectedRoute = ({ children, role }: { children: ReactElement; role: stri
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/"                element={<Navigate to="/login" replace />} />
-      <Route path="/login"           element={<LoginPage />} />
-      <Route path="/register"        element={<RegisterClientPage />} />
-      <Route path="/register/lawyer" element={<RegisterLawyerPage />} />
+      <Route path="/"                  element={<Navigate to="/login" replace />} />
+      <Route path="/login"             element={<LoginPage />} />
+      <Route path="/register"          element={<RegisterClientPage />} />
+      <Route path="/register/lawyer"   element={<RegisterLawyerPage />} />
 
-      {/* Recherche — accessible à tous les utilisateurs connectés */}
-      <Route path="/search" element={<SearchPage />} />
+      {/* Recherche et détail avocat : publics */}
+      <Route path="/search"            element={<SearchPage />} />
+      <Route path="/lawyers/:id"       element={<LawyerDetailPage />} />
 
-      <Route path="/client/dashboard" element={
+      <Route path="/client/dashboard"  element={
         <ProtectedRoute role="CLIENT"><ClientDashboard /></ProtectedRoute>
       } />
-      <Route path="/lawyer/dashboard" element={
+      <Route path="/lawyer/dashboard"  element={
         <ProtectedRoute role="LAWYER"><LawyerDashboard /></ProtectedRoute>
       } />
-      <Route path="/admin/dashboard" element={
+      <Route path="/admin/dashboard"   element={
         <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
       } />
 

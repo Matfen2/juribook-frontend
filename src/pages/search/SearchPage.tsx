@@ -9,68 +9,140 @@ import {
   type SearchFilters,
 } from '../../api/lawyerApi'
 
-// ── Composant carte avocat ───────────────────────────────
+function initials(barNumber: string) {
+  return barNumber.slice(0, 2).toUpperCase()
+}
 
-function LawyerCard({ lawyer }: { lawyer: LawyerSearchResult }) {
+const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
+const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
+function avatarStyle(barNumber: string) {
+  const i = parseInt(barNumber[0] ?? '0', 10) % AVATAR_BG.length
+  return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
+}
+
+function Stars({ rating, count }: { rating?: number; count: number }) {
+  if (!rating) return <span style={{ fontSize: 12, color: '#94A3B8' }}>Aucun avis</span>
+  const full = Math.round(rating)
   return (
-    <article className="bg-white rounded-2xl border border-slate-100 p-6 hover:shadow-md hover:border-indigo-100 transition-all duration-200 flex flex-col gap-4">
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ color: '#F59E0B', fontSize: 13, letterSpacing: 1 }}>
+        {'★'.repeat(full)}{'☆'.repeat(5 - full)}
+      </span>
+      <span style={{ fontSize: 12, color: '#94A3B8' }}>({count})</span>
+    </span>
+  )
+}
 
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
-          {lawyer.barNumber.slice(0, 2)}
+function LawyerCard({ lawyer, onClick }: { lawyer: LawyerSearchResult; onClick: () => void }) {
+  const av = avatarStyle(lawyer.barNumber)
+
+  return (
+    <article
+      onClick={onClick}
+      style={{
+        background: '#fff',
+        border: '1px solid #E2E8F0',
+        borderRadius: 16,
+        padding: '1.25rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        cursor: 'pointer',
+        transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 8px 24px rgba(79,70,229,0.12)'
+        e.currentTarget.style.borderColor = '#818CF8'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none'
+        e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.borderColor = '#E2E8F0'
+      }}
+    >
+      {/* Avatar + badge */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+          background: av.bg, color: av.tx,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 700, fontSize: 16, letterSpacing: 1,
+        }}>
+          {initials(lawyer.barNumber)}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 5px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Barreau n° {lawyer.barNumber}
           </p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {lawyer.specialties.slice(0, 3).map(s => (
-              <span key={s.id} className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {lawyer.specialties.slice(0, 2).map(s => (
+              <span key={s.id} style={{
+                fontSize: 11, padding: '2px 9px', borderRadius: 99, fontWeight: 600,
+                background: '#EEF2FF', color: '#4F46E5',
+              }}>
                 {s.name}
               </span>
             ))}
-            {lawyer.specialties.length > 3 && (
-              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">
-                +{lawyer.specialties.length - 3}
+            {lawyer.specialties.length > 2 && (
+              <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 99, background: '#F1F5F9', color: '#64748B' }}>
+                +{lawyer.specialties.length - 2}
               </span>
             )}
           </div>
         </div>
       </div>
 
+      {/* Bio */}
       {lawyer.bioExcerpt && (
-        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+        <p style={{
+          fontSize: 13, color: '#475569', lineHeight: 1.65, margin: 0,
+          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>
           {lawyer.bioExcerpt}
         </p>
       )}
 
-      <div className="flex flex-wrap gap-3 text-sm text-slate-500">
-        {lawyer.address?.city && <span>📍 {lawyer.address.city}</span>}
-        {lawyer.yearsExperience != null && <span>⚖️ {lawyer.yearsExperience} ans d'expérience</span>}
-        {lawyer.languages && <span>🌐 {lawyer.languages}</span>}
+      {/* Infos */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        {lawyer.address?.city && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#64748B' }}>
+            <i className="ti ti-map-pin" style={{ fontSize: 13, color: '#6366F1' }} aria-hidden />
+            {lawyer.address.city}
+          </span>
+        )}
+        {lawyer.yearsExperience != null && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#64748B' }}>
+            <i className="ti ti-briefcase" style={{ fontSize: 13, color: '#6366F1' }} aria-hidden />
+            {lawyer.yearsExperience} ans
+          </span>
+        )}
+        {lawyer.languages && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#64748B' }}>
+            <i className="ti ti-world" style={{ fontSize: 13, color: '#6366F1' }} aria-hidden />
+            {lawyer.languages}
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-        <span className="text-xs text-slate-400">
-          {lawyer.averageRating
-            ? `${'★'.repeat(Math.round(lawyer.averageRating))} (${lawyer.reviewCount})`
-            : 'Pas encore d\'avis'}
-        </span>
-        <span className="text-indigo-600 font-semibold text-sm">
-          {lawyer.hourlyRate ? `${lawyer.hourlyRate} €/h` : 'Tarif sur demande'}
+      {/* Footer */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        paddingTop: 10, borderTop: '1px solid #F1F5F9',
+      }}>
+        <Stars rating={lawyer.averageRating} count={lawyer.reviewCount} />
+        <span style={{ fontSize: 15, fontWeight: 700, color: '#4F46E5' }}>
+          {lawyer.hourlyRate ? `${lawyer.hourlyRate} €/h` : 'Tarif libre'}
         </span>
       </div>
 
-      {!lawyer.available && (
-        <div className="text-xs text-center text-slate-400 bg-slate-50 rounded-lg py-1.5">
-          Indisponible actuellement
-        </div>
-      )}
+      {/* Lien vers détail */}
+      <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+        Voir le profil complet <i className="ti ti-arrow-right" style={{ fontSize: 13 }} aria-hidden />
+      </div>
     </article>
   )
 }
-
-// ── Page principale ──────────────────────────────────────
 
 const INITIAL_FILTERS: SearchFilters = {
   specialty: '', city: '', query: '', maxRate: undefined, page: 0, size: 20,
@@ -79,165 +151,145 @@ const INITIAL_FILTERS: SearchFilters = {
 export default function SearchPage() {
   const navigate = useNavigate()
 
-  const [filters, setFilters] = useState<SearchFilters>(INITIAL_FILTERS)
-  // triggerSearch incrémente pour déclencher l'effet de recherche
-  const [triggerSearch, setTriggerSearch] = useState(0)
+  const [filters, setFilters]         = useState<SearchFilters>(INITIAL_FILTERS)
+  const [triggerSearch, setTrigger]   = useState(0)
   const [specialties, setSpecialties] = useState<Specialty[]>([])
-  const [results, setResults] = useState<LawyerSearchPage | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  // Ref pour stocker les filtres actifs lors du dernier trigger
+  const [results, setResults]         = useState<LawyerSearchPage | null>(null)
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState<string | null>(null)
   const pendingFilters = useRef<SearchFilters>(INITIAL_FILTERS)
 
-  // Charger les spécialités une seule fois
   useEffect(() => {
     getSpecialties()
-      .then((res: { data: Specialty[] }) => { setSpecialties(res.data) })
-      .catch(() => { /* service offline */ })
+      .then((res: { data: Specialty[] }) => setSpecialties(res.data))
+      .catch(() => {})
   }, [])
 
-  // Effet de recherche — se déclenche quand triggerSearch change
-  // Les setState sont dans des callbacks async, pas dans le corps de l'effet
   useEffect(() => {
-    const controller = new AbortController()
-
-    const fetch = async () => {
-      setLoading(true)
-      setError(null)
+    const ctrl = new AbortController()
+    const run = async () => {
+      setLoading(true); setError(null)
       try {
         const res = await searchLawyers(pendingFilters.current)
-        if (!controller.signal.aborted) {
-          setResults(res.data)
-        }
+        if (!ctrl.signal.aborted) setResults(res.data)
       } catch {
-        if (!controller.signal.aborted) {
-          setError('Impossible de charger les résultats. Vérifiez que le lawyer-service est démarré.')
-        }
+        if (!ctrl.signal.aborted)
+          setError('Impossible de joindre le lawyer-service. Vérifiez qu\'il est démarré sur le port 8082.')
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
+        if (!ctrl.signal.aborted) setLoading(false)
       }
     }
-
-    void fetch()
-    return () => { controller.abort() }
+    void run()
+    return () => ctrl.abort()
   }, [triggerSearch])
 
-  const doSearch = (newFilters: SearchFilters) => {
-    pendingFilters.current = newFilters
-    setTriggerSearch(n => n + 1)
-  }
-
-  const handleFilterChange = (key: keyof SearchFilters, value: string | number | undefined) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 0 }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    doSearch({ ...filters, page: 0 })
-  }
-
-  const handleReset = () => {
-    setFilters(INITIAL_FILTERS)
-    doSearch(INITIAL_FILTERS)
-  }
-
-  const handlePageChange = (newPage: number) => {
-    const updated = { ...filters, page: newPage }
-    setFilters(updated)
-    doSearch(updated)
-  }
-
-  const hasActiveFilters = filters.specialty || filters.city || filters.query || filters.maxRate
+  const doSearch = (f: SearchFilters) => { pendingFilters.current = f; setTrigger(n => n + 1) }
+  const handleFilterChange = (k: keyof SearchFilters, v: string | number | undefined) =>
+    setFilters(prev => ({ ...prev, [k]: v, page: 0 }))
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); doSearch({ ...filters, page: 0 }) }
+  const handleReset  = () => { setFilters(INITIAL_FILTERS); doSearch(INITIAL_FILTERS) }
+  const handlePage   = (p: number) => { const f = { ...filters, page: p }; setFilters(f); doSearch(f) }
+  const hasFilters   = filters.specialty || filters.city || filters.query || filters.maxRate
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={() => navigate('/client/dashboard')}
-            className="text-slate-600 hover:text-indigo-600 transition-colors text-sm font-medium"
-          >
-            ← Tableau de bord
+      {/* Header */}
+      <header style={{
+        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10,
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={() => navigate('/client/dashboard')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+            <i className="ti ti-arrow-left" style={{ fontSize: 16 }} aria-hidden />
+            Tableau de bord
           </button>
-          <h1 className="text-lg font-semibold text-slate-800">Trouver un avocat</h1>
-          <div className="w-32" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ti ti-scale" style={{ fontSize: 17, color: '#fff' }} aria-hidden />
+            </div>
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
+          </div>
+          <div style={{ width: 120 }} />
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* Hero */}
+      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2.5rem 1.5rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
+          Trouver un avocat
+        </h1>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+          Des experts juridiques près de chez vous, disponibles rapidement
+        </p>
+      </div>
 
-        {/* Filtres */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-100 p-6 mb-8 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-700 mb-4">Affiner votre recherche</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <main style={{ maxWidth: 1100, margin: '-1.5rem auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
-            <div className="lg:col-span-2">
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">Recherche libre</label>
-              <input
-                type="text"
-                placeholder="Mot-clé dans la biographie..."
-                value={filters.query ?? ''}
-                onChange={e => handleFilterChange('query', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition"
-              />
+        {/* Formulaire de recherche */}
+        <form onSubmit={handleSubmit} style={{
+          background: '#fff', borderRadius: 16, padding: '1.5rem',
+          marginBottom: '1.5rem', boxShadow: '0 4px 24px rgba(79,70,229,0.10)',
+          border: '1px solid #E2E8F0',
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' }}>
+
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Recherche libre
+              </label>
+              <div style={{ position: 'relative' }}>
+                <i className="ti ti-search" aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: '#94A3B8', pointerEvents: 'none' }} />
+                <input
+                  type="text" placeholder="Mot-clé dans la biographie..."
+                  value={filters.query ?? ''}
+                  onChange={e => handleFilterChange('query', e.target.value)}
+                  style={{ paddingLeft: 36, width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px 10px 36px', fontSize: 13, outline: 'none', transition: 'border-color 0.15s' }}
+                  onFocus={e => e.target.style.borderColor = '#6366F1'}
+                  onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">Spécialité</label>
-              <select
-                value={filters.specialty ?? ''}
-                onChange={e => handleFilterChange('specialty', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition bg-white"
-              >
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Spécialité</label>
+              <select value={filters.specialty ?? ''} onChange={e => handleFilterChange('specialty', e.target.value)}
+                style={{ width: '100%', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px', fontSize: 13, background: '#fff', outline: 'none' }}>
                 <option value="">Toutes</option>
-                {specialties.map(s => (
-                  <option key={s.id} value={s.slug}>{s.name}</option>
-                ))}
+                {specialties.map(s => <option key={s.id} value={s.slug}>{s.name}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">Ville</label>
-              <input
-                type="text"
-                placeholder="Paris, Lyon..."
-                value={filters.city ?? ''}
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Ville</label>
+              <input type="text" placeholder="Paris, Lyon..." value={filters.city ?? ''}
                 onChange={e => handleFilterChange('city', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition"
+                style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px', fontSize: 13, outline: 'none', transition: 'border-color 0.15s' }}
+                onFocus={e => e.target.style.borderColor = '#6366F1'}
+                onBlur={e => e.target.style.borderColor = '#E2E8F0'}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">Tarif max (€/h)</label>
-              <input
-                type="number"
-                placeholder="500"
-                min={0}
-                value={filters.maxRate ?? ''}
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Tarif max (€/h)</label>
+              <input type="number" placeholder="500" min={0} value={filters.maxRate ?? ''}
                 onChange={e => handleFilterChange('maxRate', e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition"
+                style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px', fontSize: 13, outline: 'none', transition: 'border-color 0.15s' }}
+                onFocus={e => e.target.style.borderColor = '#6366F1'}
+                onBlur={e => e.target.style.borderColor = '#E2E8F0'}
               />
             </div>
 
-            <div className="flex gap-3 items-end lg:col-span-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white text-sm font-semibold rounded-xl transition shadow-sm"
-              >
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button type="submit" disabled={loading}
+                style={{ flex: 1, background: loading ? '#A5B4FC' : 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(79,70,229,0.3)', transition: 'opacity 0.15s' }}>
                 {loading ? 'Recherche...' : 'Rechercher'}
               </button>
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="px-4 py-2.5 text-slate-500 hover:text-slate-700 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 transition"
-                >
-                  Réinitialiser
+              {hasFilters && (
+                <button type="button" onClick={handleReset}
+                  style={{ padding: '10px 12px', fontSize: 13, color: '#64748B', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                  Effacer
                 </button>
               )}
             </div>
@@ -246,35 +298,42 @@ export default function SearchPage() {
 
         {/* Compteur */}
         {results && !loading && (
-          <p className="text-sm text-slate-500 mb-4">
-            {results.totalElements === 0
-              ? 'Aucun avocat trouvé'
-              : `${results.totalElements} avocat${results.totalElements > 1 ? 's' : ''} trouvé${results.totalElements > 1 ? 's' : ''}`}
-            {hasActiveFilters && <span className="text-indigo-500 ml-1">· Filtres actifs</span>}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+            {results.totalElements > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4F46E5', background: '#EEF2FF', padding: '4px 12px', borderRadius: 99 }}>
+                <i className="ti ti-users" style={{ fontSize: 13 }} aria-hidden />
+                {results.totalElements} avocat{results.totalElements > 1 ? 's' : ''} trouvé{results.totalElements > 1 ? 's' : ''}
+              </span>
+            )}
+            {results.totalElements === 0 && (
+              <span style={{ fontSize: 13, color: '#94A3B8' }}>Aucun avocat trouvé</span>
+            )}
+            {hasFilters && <span style={{ fontSize: 12, color: '#7C3AED', fontWeight: 500 }}>· Filtres actifs</span>}
+          </div>
         )}
 
         {/* Erreur */}
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl p-4 mb-6">{error}</div>
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 13, borderRadius: 12, padding: '12px 16px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="ti ti-alert-circle" style={{ fontSize: 16 }} aria-hidden />
+            {error}
+          </div>
         )}
 
         {/* Skeleton */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-100 p-6 animate-pulse">
-                <div className="flex gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-200" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 bg-slate-200 rounded w-1/3" />
-                    <div className="h-3 bg-slate-200 rounded w-2/3" />
+              <div key={i} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 16, padding: '1.25rem' }}>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: '#F1F5F9', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: 10, width: '35%', background: '#F1F5F9', borderRadius: 4, marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: 10, width: '65%', background: '#F1F5F9', borderRadius: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-200 rounded" />
-                  <div className="h-3 bg-slate-200 rounded w-5/6" />
-                </div>
+                <div style={{ height: 10, background: '#F1F5F9', borderRadius: 4, marginBottom: 6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div style={{ height: 10, width: '80%', background: '#F1F5F9', borderRadius: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
               </div>
             ))}
           </div>
@@ -282,51 +341,47 @@ export default function SearchPage() {
 
         {/* État vide */}
         {!loading && results?.content.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-4xl mb-4">⚖️</p>
-            <p className="text-lg font-medium text-slate-500">Aucun avocat ne correspond à votre recherche</p>
-            <p className="text-sm text-slate-400 mt-2">Essayez d'élargir les filtres ou de changer de ville</p>
-            <button
-              onClick={handleReset}
-              className="mt-6 px-5 py-2 text-sm text-indigo-600 border border-indigo-200 rounded-xl hover:bg-indigo-50 transition"
-            >
+          <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+            <div style={{ width: 72, height: 72, borderRadius: 20, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <i className="ti ti-scale" style={{ fontSize: 36, color: '#4F46E5' }} aria-hidden />
+            </div>
+            <p style={{ fontSize: 17, fontWeight: 600, color: '#1E293B', margin: '0 0 6px' }}>Aucun avocat ne correspond</p>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 24px' }}>Élargissez les filtres ou changez de ville</p>
+            <button onClick={handleReset}
+              style={{ fontSize: 13, color: '#4F46E5', border: '1.5px solid #818CF8', background: '#EEF2FF', borderRadius: 10, padding: '8px 20px', cursor: 'pointer', fontWeight: 600 }}>
               Voir tous les avocats
             </button>
           </div>
         )}
 
-        {/* Grille de résultats */}
+        {/* Grille */}
         {!loading && results && results.content.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {results.content.map(lawyer => (
-              <LawyerCard key={lawyer.id} lawyer={lawyer} />
+              <LawyerCard key={lawyer.id} lawyer={lawyer} onClick={() => navigate(`/lawyers/${lawyer.id}`)} />
             ))}
           </div>
         )}
 
         {/* Pagination */}
         {!loading && results && results.totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-10">
-            <button
-              disabled={results.number === 0}
-              onClick={() => handlePageChange(results.number - 1)}
-              className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
-              ← Précédent
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: '2.5rem' }}>
+            <button disabled={results.number === 0} onClick={() => handlePage(results.number - 1)}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', background: '#fff', cursor: results.number === 0 ? 'not-allowed' : 'pointer', opacity: results.number === 0 ? 0.4 : 1, fontWeight: 500, color: '#4F46E5' }}>
+              <i className="ti ti-arrow-left" style={{ fontSize: 14 }} aria-hidden />Précédent
             </button>
-            <span className="text-sm text-slate-500 px-4">
-              Page {results.number + 1} / {results.totalPages}
+            <span style={{ fontSize: 13, color: '#64748B', padding: '0 16px', fontWeight: 500 }}>
+              {results.number + 1} / {results.totalPages}
             </span>
-            <button
-              disabled={results.number >= results.totalPages - 1}
-              onClick={() => handlePageChange(results.number + 1)}
-              className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
-              Suivant →
+            <button disabled={results.number >= results.totalPages - 1} onClick={() => handlePage(results.number + 1)}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', background: '#fff', cursor: results.number >= results.totalPages - 1 ? 'not-allowed' : 'pointer', opacity: results.number >= results.totalPages - 1 ? 0.4 : 1, fontWeight: 500, color: '#4F46E5' }}>
+              Suivant<i className="ti ti-arrow-right" style={{ fontSize: 14 }} aria-hidden />
             </button>
           </div>
         )}
       </main>
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }`}</style>
     </div>
   )
 }
