@@ -6,18 +6,22 @@ import RegisterClientPage from './pages/auth/RegisterClientPage';
 import RegisterLawyerPage from './pages/auth/RegisterLawyerPage';
 import SearchPage from './pages/search/SearchPage';
 import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 // Placeholder dashboards
 const ClientDashboard = () => (
-  <div className="p-8 text-slate-700 flex flex-col gap-4">
-    <h1 className="text-2xl font-bold">Dashboard Client</h1>
-    <a href="/search" className="text-indigo-600 hover:underline font-medium">
+  <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Client</h1>
+    <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
       → Trouver un avocat
     </a>
   </div>
 );
-const LawyerDashboard = () => <div className="p-8 text-slate-700">Dashboard Avocat — Sprint 3</div>;
-const AdminDashboard  = () => <div className="p-8 text-slate-700">Dashboard Admin — Sprint 7</div>;
+const LawyerDashboard = () => (
+  <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <h1 style={{ fontSize: 22, fontWeight: 700 }}>Dashboard Avocat — Sprint 3</h1>
+  </div>
+);
 
 const ProtectedRoute = ({ children, role }: { children: ReactElement; role: string }) => {
   const { user } = useAuth();
@@ -29,22 +33,23 @@ const ProtectedRoute = ({ children, role }: { children: ReactElement; role: stri
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/"                  element={<Navigate to="/login" replace />} />
-      <Route path="/login"             element={<LoginPage />} />
-      <Route path="/register"          element={<RegisterClientPage />} />
-      <Route path="/register/lawyer"   element={<RegisterLawyerPage />} />
+      <Route path="/"                element={<Navigate to="/login" replace />} />
+      <Route path="/login"           element={<LoginPage />} />
+      <Route path="/register"        element={<RegisterClientPage />} />
+      <Route path="/register/lawyer" element={<RegisterLawyerPage />} />
 
-      {/* Recherche et détail avocat : publics */}
-      <Route path="/search"            element={<SearchPage />} />
-      <Route path="/lawyers/:id"       element={<LawyerDetailPage />} />
+      {/* Recherche publique */}
+      <Route path="/search"          element={<SearchPage />} />
+      <Route path="/lawyers/:id"     element={<LawyerDetailPage />} />
 
-      <Route path="/client/dashboard"  element={
+      {/* Dashboards protégés */}
+      <Route path="/client/dashboard" element={
         <ProtectedRoute role="CLIENT"><ClientDashboard /></ProtectedRoute>
       } />
-      <Route path="/lawyer/dashboard"  element={
+      <Route path="/lawyer/dashboard" element={
         <ProtectedRoute role="LAWYER"><LawyerDashboard /></ProtectedRoute>
       } />
-      <Route path="/admin/dashboard"   element={
+      <Route path="/admin/dashboard" element={
         <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
       } />
 
