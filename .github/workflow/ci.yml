@@ -1,0 +1,86 @@
+# ═══════════════════════════════════════════════════════════
+#  GitHub Actions CI — juribook-frontend
+#  Pipeline : install → lint → build → tests unitaires (Vitest)
+#             → tests E2E (Cypress, API mockée via cy.intercept)
+#
+#  Déclenché sur push develop et pull request vers main
+# ═══════════════════════════════════════════════════════════
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  # ─────────────────────────────────────────────
+  #  Lint + Build + Tests unitaires (Vitest)
+  # ─────────────────────────────────────────────
+  build-and-unit-tests:
+    name: Lint, Build & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Unit tests (Vitest)
+        run: npm run test
+
+  # ─────────────────────────────────────────────
+  #  Tests E2E (Cypress)
+  #  Les appels API sont interceptés via cy.intercept()
+  #  avec des fixtures JSON : aucun backend Java requis.
+  # ─────────────────────────────────────────────
+  e2e-tests:
+    name: E2E Tests (Cypress)
+    runs-on: ubuntu-latest
+    needs: build-and-unit-tests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 60
+          browser: chrome
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore

@@ -1,144 +1,169 @@
-# JuriBook - Frontend
+# juribook-frontend
 
-Interface web de **JuriBook**, le Doctolib des avocats.  
-Permet aux clients de trouver et réserver un avocat, et aux avocats de gérer leur agenda.
+Application React du projet **JuriBook** : « Le Doctolib des avocats », interface client pour la recherche d'avocats, la consultation de profils, et le dashboard de validation administrateur.
 
----
+## Stack
 
-## Stack technique
+- React 19 · TypeScript · Vite
+- React Router 7
+- Tailwind CSS v4
+- Framer Motion (animations)
+- Axios (appels API)
+- Vitest + Testing Library (tests unitaires)
+- Cypress (tests E2E)
+- Tabler Icons (`ti ti-*`)
 
-| Outil | Rôle |
-|---|---|
-| React 19 + TypeScript | UI et typage |
-| Vite | Bundler et dev server |
-| Tailwind CSS v4 | Styles utilitaires |
-| React Router v7 | Navigation SPA |
-| Axios | Appels HTTP vers l'auth-service |
-| Framer Motion | Animations des pages |
-| Tabler Icons | Icônes (CDN) |
-| Vitest + Testing Library | Tests unitaires composants |
+## Prérequis
 
----
+- Node.js ≥ 22
+- auth-service démarré sur le port **8081**
+- lawyer-service démarré sur le port **8082**
+
+## Installation
+
+```bash
+npm install
+cp .env.example .env
+```
+
+Le fichier `.env` configure les URLs des microservices :
+
+```env
+VITE_AUTH_API_URL=http://localhost:8081
+VITE_LAWYER_API_URL=http://localhost:8082
+```
+
+## Lancer en développement
+
+```bash
+npm run dev
+```
+
+Application disponible sur [http://localhost:5173](http://localhost:5173)
 
 ## Structure du projet
 
 ```
 src/
 ├── api/
-│   └── authApi.ts              # registerClient, registerLawyer, login
+│   ├── axiosInstance.ts       # Instance axios générique (intercepteur 401 → /login)
+│   ├── authApi.ts             # Appels auth-service (register, login)
+│   └── lawyerApi.ts           # Appels lawyer-service (search, specialties, profil)
 ├── context/
-│   └── AuthContext.tsx         # Gestion session (token + rôle)
+│   └── AuthContext.tsx        # Provider d'authentification — token + rôle en localStorage
 ├── pages/
-│   └── auth/
-│       ├── LoginPage.tsx
-│       ├── RegisterClientPage.tsx
-│       └── RegisterLawyerPage.tsx
+│   ├── HomePage.tsx
+│   ├── auth/
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterClientPage.tsx
+│   │   └── RegisterLawyerPage.tsx
+│   ├── search/
+│   │   └── SearchPage.tsx     # Recherche paginée avec filtres (specialty, city, query, maxRate)
+│   ├── lawyer/
+│   │   └── LawyerDetailPage.tsx  # Profil complet d'un avocat (bio, tarif, spécialités, CTA réservation)
+│   └── admin/
+│       └── AdminDashboard.tsx    # Validation/refus des profils avocats, stats, filtres par statut
 ├── test/
-│   ├── setup.ts                # Mock localStorage + jest-dom
-│   └── pages/
+│   └── pages/                 # Tests unitaires Vitest + Testing Library
 │       ├── LoginPage.test.tsx
 │       ├── RegisterClientPage.test.tsx
 │       └── RegisterLawyerPage.test.tsx
-├── App.tsx                     # Routes + ProtectedRoute par rôle
-└── main.tsx
+├── App.tsx                    # Routing (React Router)
+└── vite-env.d.ts              # Typage des variables d'environnement VITE_*
+
+cypress/
+├── e2e/
+│   └── search-to-detail.cy.ts # Parcours E2E : recherche → fiche détail avocat
+├── fixtures/                  # Réponses API mockées (JSON fidèle aux DTOs Java)
+├── support/
+│   ├── e2e.ts
+│   └── commands.ts            # Commande personnalisée getByCy()
+└── tsconfig.json
 ```
 
----
+## Routes
 
-## Installation
-
-```bash
-npm install
-```
-
----
-
-## Démarrage
-
-```bash
-npm run dev
-```
-
-L'application démarre sur [http://localhost:5173](http://localhost:5173).
-
-> Le proxy Vite redirige `/api` vers `http://localhost:8080` (api-gateway).  
-> L'auth-service doit tourner sur le port `8081`.
-
----
-
-## Scripts disponibles
-
-```bash
-npm run dev           # Démarrer le serveur de développement
-npm run build         # Build de production (tsc + vite build)
-npm test              # Lancer les tests Vitest (mode run)
-npm run test:watch    # Lancer les tests en mode watch
-npm run test:coverage # Rapport de couverture de code
-npm run preview       # Prévisualiser le build de production
-```
-
----
-
-## Tests
-
-Les tests utilisent **Vitest** + **@testing-library/react**.
-
-```bash
-npm test
-```
-
-```
-Test Files  3 passed (3)
-     Tests  40 passed (40)
-  Duration  2.12s
-```
-
-### Couverture
-
-| Fichier | Tests |
-|---|---|
-| `LoginPage.test.tsx` | 13 tests : rendu, soumission CLIENT/LAWYER/ADMIN, erreurs API, état bouton |
-| `RegisterClientPage.test.tsx` | 15 tests : rendu, mise à jour champs, effacement erreur, soumission, erreurs |
-| `RegisterLawyerPage.test.tsx` | 12 tests : rendu champs personnels + professionnels, soumission, erreurs |
-
----
-
-## Pages auth
-
-### `/login` - Connexion
-- Formulaire email + mot de passe
-- Redirection automatique selon le rôle : `CLIENT → /client/dashboard`, `LAWYER → /lawyer/dashboard`, `ADMIN → /admin/dashboard`
-
-### `/register` - Inscription client
-- Formulaire nom, email, mot de passe, téléphone (optionnel)
-- Rôle `CLIENT` assigné automatiquement
-
-### `/register/lawyer` - Inscription avocat
-- Formulaire infos personnelles + professionnelles (numéro de barreau, spécialité, ville)
-- Statut `PENDING` : validation manuelle par un administrateur sous 48h
-
----
-
-## Connexion au backend
-
-Le frontend communique avec l'**auth-service** (port 8081) via `src/api/authApi.ts`.
-
-| Endpoint | Méthode | Description |
+| Route | Page | Accès |
 |---|---|---|
-| `/api/auth/register` | POST | Inscription client |
-| `/api/auth/register/lawyer` | POST | Inscription avocat |
-| `/api/auth/login` | POST | Connexion - retourne JWT + refresh token |
+| `/login` | Connexion | Public |
+| `/register` | Inscription client | Public |
+| `/register/lawyer` | Inscription avocat (statut PENDING) | Public |
+| `/search` | Recherche d'avocats avec filtres | Public |
+| `/lawyers/:id` | Fiche détail d'un avocat | Public |
+| `/client/dashboard` | Dashboard client | CLIENT |
+| `/lawyer/dashboard` | Dashboard avocat | LAWYER |
+| `/admin/dashboard` | Validation des profils avocats | ADMIN |
 
-Le token JWT est stocké dans `localStorage` via `AuthContext` (`saveUser(token, role)`).
+## Tests unitaires (Vitest)
 
----
+```bash
+npm run test           # exécution unique
+npm run test:watch     # mode watch
+npm run test:coverage  # avec rapport de couverture
+```
+
+```
+Tests run: 40 - LoginPage (13), RegisterClientPage (15), RegisterLawyerPage (12)
+```
+
+## Tests E2E (Cypress)
+
+Les appels au lawyer-service sont interceptés via `cy.intercept()` avec des fixtures JSON fidèles aux DTOs réels (`LawyerSearchResponse`, `LawyerProfileResponse`), aucun backend Java requis pour faire tourner les tests.
+
+```bash
+npm run cypress:open   # mode interactif (debug visuel)
+npm run cypress:run    # mode headless
+npm run e2e            # démarre Vite automatiquement puis lance Cypress
+```
+
+Parcours couvert (`search-to-detail.cy.ts`, 7 scénarios) :
+- Affichage des résultats au chargement de `/search`
+- Filtrage par ville → nouvelle requête déclenchée
+- État vide quand aucun avocat ne correspond
+- Navigation recherche → fiche détail au clic sur une carte
+- Retour à la recherche depuis la fiche détail
+- CTA de réservation désactivé si l'avocat est indisponible
+- Message d'erreur si le lawyer-service est injoignable
+
+> Convention de sélecteur : tous les éléments testés en E2E portent un attribut `data-cy="..."`, indépendant du texte affiché ou des classes CSS, pour des tests stables dans le temps.
+
+## Build production
+
+```bash
+npm run build
+npm run preview
+```
+
+## Lint
+
+```bash
+npm run lint
+```
+
+## Authentification
+
+Le token JWT et le rôle sont stockés en `localStorage` (`token`, `role`) via `AuthContext`. L'intercepteur axios dans `axiosInstance.ts` ajoute automatiquement le header `Authorization: Bearer <token>` et redirige vers `/login` en cas de 401.
+
+`lawyerApi.ts` utilise une instance axios séparée (`lawyerAxios`) ciblant directement le lawyer-service sur le port 8082, avec son propre intercepteur de token.
 
 ## Variables d'environnement
 
-Créer un fichier `.env.local` à la racine :
+| Variable | Description | Exemple |
+|---|---|---|
+| `VITE_AUTH_API_URL` | URL de base de l'auth-service | `http://localhost:8081` |
+| `VITE_LAWYER_API_URL` | URL de base du lawyer-service | `http://localhost:8082` |
 
-```env
-VITE_API_URL=http://localhost:8081
-```
+> Le fichier `.env` est ignoré par Git (`.gitignore`). Utiliser `.env.example` comme modèle.
 
-> En développement, le proxy Vite gère la redirection. Cette variable est utilisée en production.
+## CI/CD
+
+Pipeline GitHub Actions (`.github/workflows/ci.yml`) sur push `develop` et pull request vers `main` :
+
+1. **build-and-unit-tests** : lint, build, tests Vitest
+2. **e2e-tests** : tests Cypress (dépend du job précédent), captures d'écran uploadées en cas d'échec
+
+## Notes techniques
+
+- **CSS-in-JS inline** : `SearchPage.tsx`, `LawyerDetailPage.tsx` et `AdminDashboard.tsx` utilisent des styles inline plutôt que Tailwind, pour un contrôle fin de la palette indigo/violet (dégradés, ombres colorées) difficile à exprimer avec les classes utilitaires par défaut.
+- **Pagination & recherche** : `SearchPage` utilise un pattern `useRef` + compteur de déclenchement (`triggerSearch`) pour éviter les appels `setState` synchrones dans le corps d'un `useEffect` (règle ESLint `react-hooks/set-state-in-effect`).
+- **Patch partiel** : les formulaires d'inscription (`RegisterClientPage`, `RegisterLawyerPage`) déclarent leurs champs et étapes (`FIELDS`, `STEPS`) en constantes hors composant pour éviter leur recréation à chaque render.

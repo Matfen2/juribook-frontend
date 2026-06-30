@@ -1,0 +1,313 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
+
+function initials(barNumber: string) {
+  return barNumber.slice(0, 2).toUpperCase()
+}
+
+const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
+const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
+function avatarStyle(barNumber: string) {
+  const i = parseInt(barNumber[0] ?? '0', 10) % AVATAR_BG.length
+  return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
+}
+
+function Stars({ rating, count }: { rating?: number; count: number }) {
+  if (!rating) return <span style={{ fontSize: 13, color: '#94A3B8' }}>Aucun avis pour l'instant</span>
+  const full = Math.round(rating)
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ color: '#F59E0B', fontSize: 18, letterSpacing: 2 }}>
+        {'★'.repeat(full)}{'☆'.repeat(5 - full)}
+      </span>
+      <span style={{ fontSize: 13, color: '#94A3B8' }}>
+        {rating.toFixed(1)} / 5 · {count} avis
+      </span>
+    </span>
+  )
+}
+
+function Skeleton() {
+  const bar = (w: string, h = 12) => (
+    <div style={{ width: w, height: h, background: '#F1F5F9', borderRadius: 6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+  )
+  return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+      <div style={{ maxWidth: 780, margin: '0 auto', padding: '2rem 1.5rem' }}>
+        <div style={{ display: 'flex', gap: 20, marginBottom: 32, background: '#fff', borderRadius: 16, padding: '1.75rem', border: '1px solid #E2E8F0' }}>
+          <div style={{ width: 72, height: 72, borderRadius: 14, background: '#F1F5F9', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center' }}>
+            {bar('40%', 14)} {bar('65%', 10)} {bar('50%', 10)}
+          </div>
+        </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} style={{ background: '#fff', borderRadius: 16, padding: '1.25rem', border: '1px solid #E2E8F0', marginBottom: 12 }}>
+            {bar('30%', 10)} <div style={{ marginTop: 12 }}>{bar('100%', 12)}</div> <div style={{ marginTop: 6 }}>{bar('80%', 12)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Section({ title, icon, color, children }: { title: string; icon: string; color: string; children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #E2E8F0',
+      borderRadius: 16, padding: '1.25rem', marginBottom: 16,
+      borderLeft: `4px solid ${color}`,
+    }}>
+      <h2 style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        <i className={`ti ${icon}`} style={{ fontSize: 14, color }} aria-hidden />
+        {title}
+      </h2>
+      {children}
+    </div>
+  )
+}
+
+export default function LawyerDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+
+  const [lawyer, setLawyer] = useState<LawyerProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]   = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true)
+    getLawyerById(Number(id))
+      .then(res => setLawyer(res.data))
+      .catch(() => setError('Profil introuvable ou service indisponible.'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) return <Skeleton />
+
+  if (error || !lawyer) return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
+      <div style={{ width: 64, height: 64, borderRadius: 16, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <i className="ti ti-alert-circle" style={{ fontSize: 32, color: '#DC2626' }} aria-hidden />
+      </div>
+      <p style={{ color: '#475569', fontSize: 15, margin: 0, fontWeight: 500 }}>{error ?? 'Avocat introuvable'}</p>
+      <button onClick={() => navigate(-1)}
+        style={{ fontSize: 13, color: '#4F46E5', border: '1.5px solid #818CF8', background: '#EEF2FF', borderRadius: 10, padding: '8px 20px', cursor: 'pointer', fontWeight: 600, marginTop: 4 }}>
+        Retour à la recherche
+      </button>
+    </div>
+  )
+
+  const av = avatarStyle(lawyer.barNumber)
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+
+      {/* Header */}
+      <header style={{
+        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10,
+      }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button data-cy="lawyer-detail-back-button" onClick={() => navigate(-1)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+            <i className="ti ti-arrow-left" style={{ fontSize: 16 }} aria-hidden />
+            Retour aux résultats
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ti ti-scale" style={{ fontSize: 17, color: '#fff' }} aria-hidden />
+            </div>
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
+          </div>
+          <div style={{ width: 120 }} />
+        </div>
+      </header>
+
+      {/* Bandeau violet */}
+      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', height: 80 }} />
+
+      <main style={{ maxWidth: 780, margin: '-40px auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
+
+        {/* Hero card */}
+        <div data-cy="lawyer-detail-hero" style={{
+          background: '#fff', border: '1px solid #E2E8F0', borderRadius: 20,
+          padding: '1.75rem', marginBottom: 16,
+          boxShadow: '0 8px 32px rgba(79,70,229,0.12)',
+          display: 'flex', alignItems: 'flex-start', gap: 20,
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width: 76, height: 76, borderRadius: 18, flexShrink: 0,
+            background: av.bg, color: av.tx,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 700, fontSize: 24, letterSpacing: 1,
+            boxShadow: `0 4px 14px ${av.bg}55`,
+          }}>
+            {initials(lawyer.barNumber)}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+              <span data-cy="lawyer-detail-bar-number" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Barreau n° {lawyer.barNumber}
+              </span>
+              <span style={{
+                fontSize: 11, padding: '2px 10px', borderRadius: 99, fontWeight: 700,
+                background: lawyer.available ? '#ECFDF5' : '#F1F5F9',
+                color: lawyer.available ? '#059669' : '#94A3B8',
+              }}>
+                {lawyer.available ? '● Disponible' : '● Indisponible'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              {lawyer.specialties.map(s => (
+                <span key={s.id} style={{
+                  fontSize: 12, padding: '4px 12px', borderRadius: 99,
+                  background: '#EEF2FF', color: '#4F46E5', fontWeight: 600,
+                }}>
+                  {s.name}
+                </span>
+              ))}
+            </div>
+
+            <Stars rating={lawyer.averageRating} count={lawyer.reviewCount} />
+          </div>
+
+          {/* Tarif */}
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            {lawyer.hourlyRate ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: 32, fontWeight: 700, color: '#4F46E5' }}>{lawyer.hourlyRate}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: '#6366F1' }}>€</span>
+                </div>
+                <p style={{ fontSize: 12, color: '#94A3B8', margin: '2px 0 0', fontWeight: 500 }}>par heure</p>
+              </>
+            ) : (
+              <p style={{ fontSize: 13, color: '#94A3B8', margin: 0, fontWeight: 500 }}>Tarif libre</p>
+            )}
+          </div>
+        </div>
+
+        {/* Bio */}
+        {lawyer.bio && (
+          <Section title="Présentation" icon="ti-user" color="#4F46E5">
+            <p data-cy="lawyer-detail-bio" style={{ fontSize: 14, color: '#475569', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-line' }}>
+              {lawyer.bio}
+            </p>
+          </Section>
+        )}
+
+        {/* Infos pratiques */}
+        <Section title="Informations pratiques" icon="ti-info-circle" color="#0891B2">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
+
+            {lawyer.yearsExperience != null && (
+              <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px' }}>
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Expérience</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-briefcase" style={{ fontSize: 15, color: '#6366F1' }} aria-hidden />
+                  {lawyer.yearsExperience} ans
+                </p>
+              </div>
+            )}
+
+            {lawyer.languages && (
+              <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px' }}>
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Langues</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-world" style={{ fontSize: 15, color: '#6366F1' }} aria-hidden />
+                  {lawyer.languages}
+                </p>
+              </div>
+            )}
+
+            {lawyer.address?.city && (
+              <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px' }}>
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cabinet</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-map-pin" style={{ fontSize: 15, color: '#6366F1' }} aria-hidden />
+                  {lawyer.address.city}
+                </p>
+                {lawyer.address.street && (
+                  <p style={{ fontSize: 12, color: '#94A3B8', margin: '3px 0 0 21px' }}>
+                    {lawyer.address.street}{lawyer.address.postalCode && `, ${lawyer.address.postalCode}`}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {lawyer.address?.region && (
+              <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px' }}>
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Région</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="ti ti-building" style={{ fontSize: 15, color: '#6366F1' }} aria-hidden />
+                  {lawyer.address.region}
+                </p>
+              </div>
+            )}
+          </div>
+        </Section>
+
+        {/* Spécialités */}
+        {lawyer.specialties.some(s => s.description) && (
+          <Section title="Domaines d'expertise" icon="ti-scale" color="#7C3AED">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {lawyer.specialties.map(s => (
+                <div key={s.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: '#F8FAFC', borderRadius: 10, padding: '10px 14px' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 7, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                    <i className="ti ti-check" style={{ fontSize: 13, color: '#4F46E5' }} aria-hidden />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#1E293B', margin: '0 0 2px' }}>{s.name}</p>
+                    {s.description && <p style={{ fontSize: 12, color: '#64748B', margin: 0 }}>{s.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* CTA */}
+        <div style={{
+          background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+          borderRadius: 16, padding: '2rem', textAlign: 'center',
+          boxShadow: '0 8px 24px rgba(79,70,229,0.3)',
+        }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
+            Prendre rendez-vous
+          </p>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: '0 0 20px' }}>
+            {lawyer.available
+              ? 'Cet avocat accepte de nouveaux clients · Réponse sous 24h'
+              : 'Cet avocat n\'accepte pas de nouveaux clients pour le moment'}
+          </p>
+          <button
+            data-cy="lawyer-detail-book-button"
+            disabled={!lawyer.available}
+            onClick={() => lawyer.available && alert('Fonctionnalité réservation — Sprint 3')}
+            style={{
+              background: lawyer.available ? '#fff' : 'rgba(255,255,255,0.2)',
+              color: lawyer.available ? '#4F46E5' : 'rgba(255,255,255,0.5)',
+              border: 'none', borderRadius: 12, padding: '12px 28px',
+              fontWeight: 700, fontSize: 15, cursor: lawyer.available ? 'pointer' : 'not-allowed',
+              boxShadow: lawyer.available ? '0 4px 14px rgba(0,0,0,0.12)' : 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            <i className="ti ti-calendar-plus" style={{ fontSize: 17 }} aria-hidden />
+            Réserver un créneau
+          </button>
+        </div>
+
+      </main>
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+    </div>
+  )
+}

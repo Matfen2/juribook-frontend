@@ -1,0 +1,50 @@
+{
+  "content": [
+    {
+      "id": 10,
+      "barNumber": "75001",
+      "bioExcerpt": "Avocate au barreau de Paris depuis 12 ans, spécialisée en droit du travail et droit des affaires. Ancienne juriste en entreprise (CAC 40), j'accompagne salariés et employeurs dans leurs litiges prud'homaux...",
+      "hourlyRate": 220,
+      "yearsExperience": 12,
+      "languages": "Français, Anglais, Espagnol",
+      "available": true,
+      "averageRating": 4.5,
+      "reviewCount": 8,
+      "address": {
+        "street": "12 avenue de l'Opéra",
+        "city": "Paris",
+        "postalCode": "75001",
+        "department": "Paris",
+        "region": "Île-de-France"
+      },
+      "specialties": [
+        { "id": 1, "name": "Droit du travail", "slug": "droit-du-travail", "description": "Litiges employeur/salarié" }
+      ]
+    },
+    {
+      "id": 11,
+      "barNumber": "69001",
+      "bioExcerpt": "Avocat pénaliste au barreau de Lyon depuis 8 ans. Ancien substitut du procureur, je défends particuliers et entreprises en matière criminelle et correctionnelle.",
+      "hourlyRate": 180,
+      "yearsExperience": 8,
+      "languages": "Français, Anglais",
+      "available": true,
+      "averageRating": null,
+      "reviewCount": 0,
+      "address": {
+        "street": "14 place Bellecour",
+        "city": "Lyon",
+        "postalCode": "69001",
+        "department": "Rhône",
+        "region": "Auvergne-Rhône-Alpes"
+      },
+      "specialties": [
+        { "id": 3, "name": "Droit pénal", "slug": "droit-penal", "description": "Défense pénale" }
+      ]
+    }
+  ],
+  "totalElements": 2,
+  "totalPages": 1,
+  "number": 0,
+  "size": 20
+}
