@@ -3,10 +3,76 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { registerLawyer } from '../../api/authApi';
 
+// Constantes déclarées hors composant, suite à la review d'Abdelhadi (mentor) :
+// ces tableaux ne changent jamais, les recréer à chaque render est un gaspillage
+// inutile (nouvelle référence d'objet à chaque rendu, alloue de la mémoire pour rien).
+const PERSONAL_FIELDS = [
+  { name: 'name',     label: 'Nom complet',  optionnel: false, icon: 'ti-user',  type: 'text',     placeholder: 'Maître Jean Dupont'   },
+  { name: 'email',    label: 'Adresse email', optionnel: false, icon: 'ti-mail',  type: 'email',    placeholder: 'jean@barreau.fr'      },
+  { name: 'password', label: 'Mot de passe',  optionnel: false, icon: 'ti-lock',  type: 'password', placeholder: 'Minimum 8 caractères' },
+  { name: 'phone',    label: 'Téléphone',     optionnel: true,  icon: 'ti-phone', type: 'text',     placeholder: '0612345678'           },
+] as const;
+
+const CABINET_FIELDS = [
+  { name: 'barNumber', label: 'Numéro de barreau', optionnel: false, icon: 'ti-id-badge', type: 'text', placeholder: '75001'            },
+  { name: 'specialty', label: 'Spécialité',        optionnel: false, icon: 'ti-books',    type: 'text', placeholder: 'Droit du travail' },
+  { name: 'city',      label: "Ville d'exercice",  optionnel: false, icon: 'ti-map-pin',  type: 'text', placeholder: 'Paris'            },
+] as const;
+
+const STEPS = [
+  { num: 1, done: true,  active: false, title: 'Informations cabinet',    sub: 'Nom, email, barreau, spécialité'        },
+  { num: 2, done: false, active: true,  title: 'Validation du dossier',   sub: 'Examen par notre équipe sous 48h'       },
+  { num: 3, done: false, active: false, title: 'Accès à JuriBook',        sub: 'Gérez votre agenda et vos rendez-vous'  },
+] as const;
+
+type FormState = {
+  name: string; email: string; password: string; phone: string;
+  barNumber: string; specialty: string; city: string;
+};
+
+type FieldDef = typeof PERSONAL_FIELDS[number] | typeof CABINET_FIELDS[number];
+
+// Sous-composant extrait pour le rendu des champs, découplé du composant
+// parent plutôt que recréé à chaque render via une closure interne.
+function FieldGroup({
+  fields,
+  form,
+  onChange,
+}: {
+  fields: readonly FieldDef[];
+  form: FormState;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <>
+      {fields.map(({ name, label, optionnel, icon, type, placeholder }) => (
+        <div key={name} className="mb-4">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-2">
+            <i className={`ti ${icon} text-indigo-500 text-sm`} aria-hidden="true" />
+            {label}
+            {optionnel && <span className="text-slate-400 font-normal">(optionnel)</span>}
+          </label>
+          <div className="relative">
+            <i className={`ti ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm`} aria-hidden="true" />
+            <input
+              name={name}
+              type={type}
+              placeholder={placeholder}
+              value={form[name as keyof FormState]}
+              onChange={onChange}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:bg-white transition"
+            />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 const RegisterLawyerPage = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     name: '', email: '', password: '', phone: '',
     barNumber: '', specialty: '', city: '',
   });
@@ -34,47 +100,6 @@ const RegisterLawyerPage = () => {
       setLoading(false);
     }
   };
-
-  const personalFields = [
-    { name: 'name',     label: 'Nom complet',  optionnel: false, icon: 'ti-user',  type: 'text',     placeholder: 'Maître Jean Dupont'   },
-    { name: 'email',    label: 'Adresse email', optionnel: false, icon: 'ti-mail',  type: 'email',    placeholder: 'jean@barreau.fr'      },
-    { name: 'password', label: 'Mot de passe',  optionnel: false, icon: 'ti-lock',  type: 'password', placeholder: 'Minimum 8 caractères' },
-    { name: 'phone',    label: 'Téléphone',     optionnel: true,  icon: 'ti-phone', type: 'text',     placeholder: '0612345678'           },
-  ] as const;
-
-  const cabinetFields = [
-    { name: 'barNumber', label: 'Numéro de barreau', optionnel: false, icon: 'ti-id-badge', type: 'text', placeholder: '75001'            },
-    { name: 'specialty', label: 'Spécialité',        optionnel: false, icon: 'ti-books',    type: 'text', placeholder: 'Droit du travail' },
-    { name: 'city',      label: "Ville d'exercice",  optionnel: false, icon: 'ti-map-pin',  type: 'text', placeholder: 'Paris'            },
-  ] as const;
-
-  const steps = [
-    { num: 1, done: true,  active: false, title: 'Informations cabinet',    sub: 'Nom, email, barreau, spécialité'        },
-    { num: 2, done: false, active: true,  title: 'Validation du dossier',   sub: 'Examen par notre équipe sous 48h'       },
-    { num: 3, done: false, active: false, title: 'Accès à JuriBook',        sub: 'Gérez votre agenda et vos rendez-vous'  },
-  ];
-
-  const renderFields = (fields: typeof personalFields | typeof cabinetFields) =>
-    fields.map(({ name, label, optionnel, icon, type, placeholder }) => (
-      <div key={name} className="mb-4">
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-2">
-          <i className={`ti ${icon} text-indigo-500 text-sm`} aria-hidden="true" />
-          {label}
-          {optionnel && <span className="text-slate-400 font-normal">(optionnel)</span>}
-        </label>
-        <div className="relative">
-          <i className={`ti ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm`} aria-hidden="true" />
-          <input
-            name={name}
-            type={type}
-            placeholder={placeholder}
-            value={form[name]}
-            onChange={handleChange}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border-[1.5px] border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:bg-white transition"
-          />
-        </div>
-      </div>
-    ));
 
   return (
     <div className="h-screen flex bg-slate-50">
@@ -117,7 +142,7 @@ const RegisterLawyerPage = () => {
 
           {/* Stepper */}
           <div className="flex flex-col">
-            {steps.map((step, i) => (
+            {STEPS.map((step, i) => (
               <div key={step.num} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div className={`
@@ -134,7 +159,7 @@ const RegisterLawyerPage = () => {
                       : step.num
                     }
                   </div>
-                  {i < steps.length - 1 && (
+                  {i < STEPS.length - 1 && (
                     <div className="w-px flex-1 bg-white/15 my-1" />
                   )}
                 </div>
@@ -191,7 +216,6 @@ const RegisterLawyerPage = () => {
               <i className="ti ti-briefcase text-blue-600 text-lg" aria-hidden="true" />
             </div>
             <div>
-              
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Inscrire mon cabinet</h2>
               <p className="text-sm text-slate-500">Votre profil sera validé par notre équipe</p>
             </div>
@@ -231,7 +255,7 @@ const RegisterLawyerPage = () => {
               </p>
               <div className="flex-1 h-px bg-slate-100" />
             </div>
-            {renderFields(personalFields)}
+            <FieldGroup fields={PERSONAL_FIELDS} form={form} onChange={handleChange} />
 
             {/* Section infos cabinet */}
             <div className="flex items-center gap-3 mb-4 mt-6">
@@ -241,7 +265,7 @@ const RegisterLawyerPage = () => {
               </p>
               <div className="flex-1 h-px bg-slate-100" />
             </div>
-            {renderFields(cabinetFields)}
+            <FieldGroup fields={CABINET_FIELDS} form={form} onChange={handleChange} />
 
             {/* Info délai */}
             <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mt-2 mb-5">

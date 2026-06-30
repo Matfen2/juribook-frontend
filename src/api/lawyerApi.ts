@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+// Instance axios dédiée au lawyer-service.
+// URL configurable via VITE_LAWYER_API_URL (suite à la review d'Abdelhadi, mentor).
 const lawyerAxios = axios.create({
-  baseURL: 'http://localhost:8082',
+  baseURL: import.meta.env.VITE_LAWYER_API_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -27,7 +29,6 @@ export interface Address {
   region?: string
 }
 
-// Version allégée : liste de recherche
 export interface LawyerSearchResult {
   id: number
   barNumber: string
@@ -42,7 +43,6 @@ export interface LawyerSearchResult {
   specialties: Specialty[]
 }
 
-// Version complète : page détail
 export interface LawyerProfile {
   id: number
   authUserId: number
@@ -92,6 +92,5 @@ export const searchLawyers = (filters: SearchFilters = {}) => {
 export const getSpecialties = () =>
   lawyerAxios.get<Specialty[]>('/api/specialties')
 
-// Retourne le profil complet (bio non tronquée, createdAt, updatedAt)
 export const getLawyerById = (id: number) =>
   lawyerAxios.get<LawyerProfile>(`/api/lawyers/${id}`)

@@ -3,6 +3,22 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { registerClient } from '../../api/authApi';
 
+// Constantes déclarées hors composant, suite à la review d'Abdelhadi (mentor) :
+// ces tableaux ne changent jamais, les recréer à chaque render est un gaspillage
+// inutile (nouvelle référence d'objet à chaque rendu, alloue de la mémoire pour rien).
+const FIELDS = [
+  { name: 'name',     label: 'Nom complet',  optionnel: false, icon: 'ti-user',  type: 'text',     placeholder: 'Jean Dupont'          },
+  { name: 'email',    label: 'Adresse email', optionnel: false, icon: 'ti-mail',  type: 'email',    placeholder: 'jean@example.com'     },
+  { name: 'password', label: 'Mot de passe',  optionnel: false, icon: 'ti-lock',  type: 'password', placeholder: 'Minimum 8 caractères' },
+  { name: 'phone',    label: 'Téléphone',     optionnel: true,  icon: 'ti-phone', type: 'text',     placeholder: '0612345678'           },
+] as const;
+
+const STEPS = [
+  { num: 1, done: true,  active: false, title: 'Informations personnelles', sub: 'Nom, email, mot de passe, téléphone'    },
+  { num: 2, done: false, active: true,  title: 'Validation email',          sub: 'Confirmation par lien envoyé par email' },
+  { num: 3, done: false, active: false, title: 'Accès à JuriBook',          sub: 'Recherchez et réservez votre avocat'    },
+] as const;
+
 const RegisterClientPage = () => {
   const navigate = useNavigate();
 
@@ -31,19 +47,6 @@ const RegisterClientPage = () => {
       setLoading(false);
     }
   };
-
-  const fields = [
-    { name: 'name',     label: 'Nom complet',  optionnel: false, icon: 'ti-user',  type: 'text',     placeholder: 'Jean Dupont'          },
-    { name: 'email',    label: 'Adresse email', optionnel: false, icon: 'ti-mail',  type: 'email',    placeholder: 'jean@example.com'     },
-    { name: 'password', label: 'Mot de passe',  optionnel: false, icon: 'ti-lock',  type: 'password', placeholder: 'Minimum 8 caractères' },
-    { name: 'phone',    label: 'Téléphone',     optionnel: true,  icon: 'ti-phone', type: 'text',     placeholder: '0612345678'           },
-  ] as const;
-
-  const steps = [
-    { num: 1, done: true,  active: false, title: 'Informations personnelles', sub: 'Nom, email, mot de passe, téléphone'    },
-    { num: 2, done: false, active: true,  title: 'Validation email',          sub: 'Confirmation par lien envoyé par email' },
-    { num: 3, done: false, active: false, title: 'Accès à JuriBook',          sub: 'Recherchez et réservez votre avocat'    },
-  ];
 
   return (
     <div className="h-screen flex bg-slate-50">
@@ -81,7 +84,7 @@ const RegisterClientPage = () => {
 
           {/* Stepper */}
           <div className="flex flex-col">
-            {steps.map((step, i) => (
+            {STEPS.map((step, i) => (
               <div key={step.num} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div className={`
@@ -98,7 +101,7 @@ const RegisterClientPage = () => {
                       : step.num
                     }
                   </div>
-                  {i < steps.length - 1 && (
+                  {i < STEPS.length - 1 && (
                     <div className="w-px flex-1 bg-white/15 my-1" />
                   )}
                 </div>
@@ -114,7 +117,7 @@ const RegisterClientPage = () => {
             ))}
           </div>
 
-          {/* Badge sécurité - poussé en bas */}
+          {/* Badge sécurité : poussé en bas */}
           <div className="mt-auto pt-8">
             <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs px-3 py-2 rounded-full">
               <i className="ti ti-shield-check text-sm" aria-hidden="true" />
@@ -124,7 +127,7 @@ const RegisterClientPage = () => {
         </div>
       </motion.div>
 
-      {/* ── Colonne droite - formulaire ── */}
+      {/* ── Colonne droite : formulaire ── */}
       <div className="flex-1 flex items-center justify-center px-6 py-8 overflow-y-auto">
         <motion.div
           className="bg-white border border-slate-200 rounded-2xl p-10 w-full max-w-md"
@@ -177,7 +180,7 @@ const RegisterClientPage = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            {fields.map(({ name, label, optionnel, icon, type, placeholder }) => (
+            {FIELDS.map(({ name, label, optionnel, icon, type, placeholder }) => (
               <div key={name} className="mb-4">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-2">
                   <i className={`ti ${icon} text-indigo-500 text-sm`} aria-hidden="true" />
