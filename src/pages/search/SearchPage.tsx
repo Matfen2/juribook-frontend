@@ -9,14 +9,19 @@ import {
   type SearchFilters,
 } from '../../api/lawyerApi'
 
-function initials(barNumber: string) {
-  return barNumber.slice(0, 2).toUpperCase()
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  // Pour "Maître Sophie Martin" → garder les 2 derniers mots (prénom + nom)
+  const relevant = parts.slice(-2)
+  return relevant.map(p => p[0]).join('').toUpperCase()
 }
 
 const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
 const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
-function avatarStyle(barNumber: string) {
-  const i = parseInt(barNumber[0] ?? '0', 10) % AVATAR_BG.length
+function avatarStyle(seed: string) {
+  const i = seed.charCodeAt(0) % AVATAR_BG.length
   return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
 }
 
@@ -34,7 +39,7 @@ function Stars({ rating, count }: { rating?: number; count: number }) {
 }
 
 function LawyerCard({ lawyer, onClick }: { lawyer: LawyerSearchResult; onClick: () => void }) {
-  const av = avatarStyle(lawyer.barNumber)
+  const av = avatarStyle(lawyer.name)
 
   return (
     <article
@@ -71,9 +76,12 @@ function LawyerCard({ lawyer, onClick }: { lawyer: LawyerSearchResult; onClick: 
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontWeight: 700, fontSize: 16, letterSpacing: 1,
         }}>
-          {initials(lawyer.barNumber)}
+          {initials(lawyer.name)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', margin: '0 0 2px' }}>
+            {lawyer.name}
+          </p>
           <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 5px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Barreau n° {lawyer.barNumber}
           </p>

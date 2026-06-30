@@ -31,6 +31,7 @@ export interface Address {
 // Version allégée — liste de recherche
 export interface LawyerSearchResult {
   id: number
+  name: string
   barNumber: string
   bioExcerpt?: string
   hourlyRate?: number
@@ -47,6 +48,7 @@ export interface LawyerSearchResult {
 export interface LawyerProfile {
   id: number
   authUserId: number
+  name: string
   barNumber: string
   bio?: string
   hourlyRate?: number

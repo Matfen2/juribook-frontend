@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
+import { getSlots, type TimeSlot } from '../../api/bookingApi'
 
-function initials(barNumber: string) {
-  return barNumber.slice(0, 2).toUpperCase()
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  const relevant = parts.slice(-2)
+  return relevant.map(p => p[0]).join('').toUpperCase()
 }
 
 const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
 const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
-function avatarStyle(barNumber: string) {
-  const i = parseInt(barNumber[0] ?? '0', 10) % AVATAR_BG.length
+function avatarStyle(seed: string) {
+  const i = seed.charCodeAt(0) % AVATAR_BG.length
   return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
 }
 
@@ -68,6 +73,169 @@ function Section({ title, icon, color, children }: { title: string; icon: string
   )
 }
 
+// ── Réservation — Sprint 3.6 ──────────────────────────────
+// Sélecteur de date + créneaux libres du jour, consommant
+// GET /api/lawyers/{id}/slots?date=... (Sprint 3.4).
+// La confirmation finale (POST /api/bookings) n'existe pas encore
+// côté backend — ce composant prépare la sélection et affiche un
+// récapitulatif clair, en attendant le sprint de réservation dédié.
+
+const WEEKDAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+function formatHM(time: string): string {
+  return time.slice(0, 5)
+}
+
+function BookingSection({ lawyerId, available }: { lawyerId: number; available: boolean }) {
+  const next14Days = useMemo(() => {
+    const days: Date[] = []
+    for (let i = 0; i < 14; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() + i)
+      days.push(d)
+    }
+    return days
+  }, [])
+
+  const [selectedDate, setSelectedDate] = useState<string>(toISODate(next14Days[0]))
+  const [slots, setSlots] = useState<TimeSlot[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+
+  useEffect(() => {
+    if (!available) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true)
+    setError(null)
+    setSelectedSlot(null)
+    getSlots(lawyerId, { date: selectedDate, status: 'AVAILABLE' })
+      .then(res => setSlots(res.data))
+      .catch(() => setError('Impossible de charger les créneaux. Le service de réservation est peut-être indisponible.'))
+      .finally(() => setLoading(false))
+  }, [lawyerId, selectedDate, available])
+
+  if (!available) return null
+
+  return (
+    <Section title="Prendre rendez-vous" icon="ti-calendar-event" color="#4F46E5">
+
+      {/* Sélecteur de date — 14 prochains jours */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 16 }}>
+        {next14Days.map(d => {
+          const iso = toISODate(d)
+          const isSelected = iso === selectedDate
+          const isToday = iso === toISODate(new Date())
+          return (
+            <button
+              key={iso}
+              onClick={() => setSelectedDate(iso)}
+              style={{
+                flexShrink: 0, minWidth: 52, padding: '8px 6px', borderRadius: 10,
+                border: isSelected ? 'none' : '1px solid #E2E8F0',
+                background: isSelected ? 'linear-gradient(135deg,#4F46E5,#7C3AED)' : '#fff',
+                cursor: 'pointer', textAlign: 'center',
+              }}
+            >
+              <p style={{ fontSize: 9, fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em', color: isSelected ? 'rgba(255,255,255,0.8)' : '#94A3B8' }}>
+                {WEEKDAY_LABELS[d.getDay()]}
+              </p>
+              <p style={{ fontSize: 15, fontWeight: 700, margin: '2px 0 0', color: isSelected ? '#fff' : '#1E293B' }}>
+                {d.getDate()}
+              </p>
+              {isToday && !isSelected && (
+                <span style={{ display: 'block', width: 4, height: 4, borderRadius: '50%', background: '#4F46E5', margin: '3px auto 0' }} />
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Erreur */}
+      {error && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 12, borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Skeleton */}
+      {loading && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} style={{ height: 38, borderRadius: 8, background: '#F1F5F9', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
+      )}
+
+      {/* État vide */}
+      {!loading && !error && slots.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+          <i className="ti ti-calendar-off" style={{ fontSize: 28, color: '#CBD5E1' }} aria-hidden />
+          <p style={{ fontSize: 13, color: '#94A3B8', margin: '8px 0 0' }}>
+            Aucun créneau libre ce jour-là — essayez une autre date
+          </p>
+        </div>
+      )}
+
+      {/* Grille des créneaux libres */}
+      {!loading && !error && slots.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8, marginBottom: selectedSlot ? 16 : 0 }}>
+          {slots.map(slot => {
+            const isSelected = selectedSlot?.id === slot.id
+            return (
+              <button
+                key={slot.id}
+                onClick={() => setSelectedSlot(isSelected ? null : slot)}
+                style={{
+                  padding: '9px 6px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  border: isSelected ? 'none' : '1.5px solid #C7D2FE',
+                  background: isSelected ? 'linear-gradient(135deg,#4F46E5,#7C3AED)' : '#EEF2FF',
+                  color: isSelected ? '#fff' : '#4F46E5',
+                  transition: 'all 0.12s',
+                }}
+              >
+                {formatHM(slot.startTime)}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Récapitulatif + confirmation */}
+      {selectedSlot && (
+        <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '14px 16px' }}>
+          <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 4px', fontWeight: 600 }}>Créneau sélectionné</p>
+          <p style={{ fontSize: 14, color: '#1E293B', margin: '0 0 12px', fontWeight: 700 }}>
+            {new Date(selectedSlot.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {' à '}{formatHM(selectedSlot.startTime)}–{formatHM(selectedSlot.endTime)}
+          </p>
+          <button
+            data-cy="lawyer-detail-confirm-booking-button"
+            onClick={() => alert(
+              `Réservation à confirmer :\n\n${new Date(selectedSlot.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à ${formatHM(selectedSlot.startTime)}\n\nLa confirmation de réservation arrive dans un prochain sprint.`
+            )}
+            style={{
+              width: '100%', padding: '10px', borderRadius: 10, border: 'none',
+              background: 'linear-gradient(135deg,#4F46E5,#7C3AED)', color: '#fff',
+              fontWeight: 700, fontSize: 13, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <i className="ti ti-check" style={{ fontSize: 15 }} aria-hidden />
+            Confirmer ce créneau
+          </button>
+        </div>
+      )}
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+    </Section>
+  )
+}
+
 export default function LawyerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -78,7 +246,6 @@ export default function LawyerDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     getLawyerById(Number(id))
       .then(res => setLawyer(res.data))
@@ -101,7 +268,7 @@ export default function LawyerDetailPage() {
     </div>
   )
 
-  const av = avatarStyle(lawyer.barNumber)
+  const av = avatarStyle(lawyer.name)
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
@@ -147,10 +314,13 @@ export default function LawyerDetailPage() {
             fontWeight: 700, fontSize: 24, letterSpacing: 1,
             boxShadow: `0 4px 14px ${av.bg}55`,
           }}>
-            {initials(lawyer.barNumber)}
+            {initials(lawyer.name)}
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 data-cy="lawyer-detail-name" style={{ fontSize: 20, fontWeight: 700, color: '#1E293B', margin: '0 0 6px' }}>
+              {lawyer.name}
+            </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
               <span data-cy="lawyer-detail-bar-number" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Barreau n° {lawyer.barNumber}
@@ -273,37 +443,20 @@ export default function LawyerDetailPage() {
           </Section>
         )}
 
-        {/* CTA */}
-        <div style={{
-          background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-          borderRadius: 16, padding: '2rem', textAlign: 'center',
-          boxShadow: '0 8px 24px rgba(79,70,229,0.3)',
-        }}>
-          <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
-            Prendre rendez-vous
-          </p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: '0 0 20px' }}>
-            {lawyer.available
-              ? 'Cet avocat accepte de nouveaux clients · Réponse sous 24h'
-              : 'Cet avocat n\'accepte pas de nouveaux clients pour le moment'}
-          </p>
-          <button
-            data-cy="lawyer-detail-book-button"
-            disabled={!lawyer.available}
-            onClick={() => lawyer.available && alert('Fonctionnalité réservation — Sprint 3')}
-            style={{
-              background: lawyer.available ? '#fff' : 'rgba(255,255,255,0.2)',
-              color: lawyer.available ? '#4F46E5' : 'rgba(255,255,255,0.5)',
-              border: 'none', borderRadius: 12, padding: '12px 28px',
-              fontWeight: 700, fontSize: 15, cursor: lawyer.available ? 'pointer' : 'not-allowed',
-              boxShadow: lawyer.available ? '0 4px 14px rgba(0,0,0,0.12)' : 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-            }}
-          >
-            <i className="ti ti-calendar-plus" style={{ fontSize: 17 }} aria-hidden />
-            Réserver un créneau
-          </button>
-        </div>
+        {/* Réservation — Sprint 3.6 */}
+        <BookingSection lawyerId={lawyer.id} available={lawyer.available} />
+
+        {!lawyer.available && (
+          <div style={{
+            background: '#F8FAFC', border: '1px solid #E2E8F0',
+            borderRadius: 16, padding: '1.5rem', textAlign: 'center',
+          }}>
+            <i className="ti ti-calendar-off" style={{ fontSize: 28, color: '#94A3B8' }} aria-hidden />
+            <p style={{ fontSize: 13, color: '#64748B', margin: '8px 0 0' }}>
+              Cet avocat n'accepte pas de nouveaux clients pour le moment
+            </p>
+          </div>
+        )}
 
       </main>
 
