@@ -1,66 +1,86 @@
+# ═══════════════════════════════════════════════════════════
+#  GitHub Actions CI — juribook-frontend
+#  Pipeline : install → lint → build → tests unitaires (Vitest)
+#             → tests E2E (Cypress, API mockée via cy.intercept)
+#
+#  Déclenché sur push develop et pull request vers main
+# ═══════════════════════════════════════════════════════════
 name: CI
 
 on:
   push:
     branches:
-      - features/test
+      - develop
   pull_request:
     branches:
-      - develop
+      - main
 
 jobs:
 
-  build:
-    name: Build & Type Check
+  # ─────────────────────────────────────────────
+  #  Lint + Build + Tests unitaires (Vitest)
+  # ─────────────────────────────────────────────
+  build-and-unit-tests:
+    name: Lint, Build & Unit Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
 
       - name: Build
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
+      - name: Unit tests (Vitest)
+        run: npm run test
 
-  docker:
-    name: Docker Build & Push
+  # ─────────────────────────────────────────────
+  #  Tests E2E (Cypress)
+  #  Les appels API sont interceptés via cy.intercept()
+  #  avec des fixtures JSON : aucun backend Java requis.
+  # ─────────────────────────────────────────────
+  e2e-tests:
+    name: E2E Tests (Cypress)
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push'
+    needs: build-and-unit-tests
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: '22'
+          cache: npm
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress
+        uses: cypress-io/github-action@v6
         with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/juribook-frontend:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/juribook-frontend:latest
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 60
+          browser: chrome
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore

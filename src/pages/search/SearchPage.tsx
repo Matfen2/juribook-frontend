@@ -38,6 +38,8 @@ function LawyerCard({ lawyer, onClick }: { lawyer: LawyerSearchResult; onClick: 
 
   return (
     <article
+      data-cy="lawyer-card"
+      data-lawyer-id={lawyer.id}
       onClick={onClick}
       style={{
         background: '#fff',
@@ -242,6 +244,7 @@ export default function SearchPage() {
               <div style={{ position: 'relative' }}>
                 <i className="ti ti-search" aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: '#94A3B8', pointerEvents: 'none' }} />
                 <input
+                  data-cy="search-query-input"
                   type="text" placeholder="Mot-clé dans la biographie..."
                   value={filters.query ?? ''}
                   onChange={e => handleFilterChange('query', e.target.value)}
@@ -254,7 +257,7 @@ export default function SearchPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Spécialité</label>
-              <select value={filters.specialty ?? ''} onChange={e => handleFilterChange('specialty', e.target.value)}
+              <select data-cy="search-specialty-select" value={filters.specialty ?? ''} onChange={e => handleFilterChange('specialty', e.target.value)}
                 style={{ width: '100%', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px', fontSize: 13, background: '#fff', outline: 'none' }}>
                 <option value="">Toutes</option>
                 {specialties.map(s => <option key={s.id} value={s.slug}>{s.name}</option>)}
@@ -263,7 +266,7 @@ export default function SearchPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Ville</label>
-              <input type="text" placeholder="Paris, Lyon..." value={filters.city ?? ''}
+              <input data-cy="search-city-input" type="text" placeholder="Paris, Lyon..." value={filters.city ?? ''}
                 onChange={e => handleFilterChange('city', e.target.value)}
                 style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1.5px solid #E2E8F0', padding: '10px 12px', fontSize: 13, outline: 'none', transition: 'border-color 0.15s' }}
                 onFocus={e => e.target.style.borderColor = '#6366F1'}
@@ -282,7 +285,7 @@ export default function SearchPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button type="submit" disabled={loading}
+              <button data-cy="search-submit-button" type="submit" disabled={loading}
                 style={{ flex: 1, background: loading ? '#A5B4FC' : 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(79,70,229,0.3)', transition: 'opacity 0.15s' }}>
                 {loading ? 'Recherche...' : 'Rechercher'}
               </button>
@@ -298,7 +301,7 @@ export default function SearchPage() {
 
         {/* Compteur */}
         {results && !loading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+          <div data-cy="search-results-count" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
             {results.totalElements > 0 && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4F46E5', background: '#EEF2FF', padding: '4px 12px', borderRadius: 99 }}>
                 <i className="ti ti-users" style={{ fontSize: 13 }} aria-hidden />
@@ -341,7 +344,7 @@ export default function SearchPage() {
 
         {/* État vide */}
         {!loading && results?.content.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+          <div data-cy="search-empty-state" style={{ textAlign: 'center', padding: '5rem 0' }}>
             <div style={{ width: 72, height: 72, borderRadius: 20, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <i className="ti ti-scale" style={{ fontSize: 36, color: '#4F46E5' }} aria-hidden />
             </div>
@@ -356,7 +359,7 @@ export default function SearchPage() {
 
         {/* Grille */}
         {!loading && results && results.content.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          <div data-cy="search-results-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {results.content.map(lawyer => (
               <LawyerCard key={lawyer.id} lawyer={lawyer} onClick={() => navigate(`/lawyers/${lawyer.id}`)} />
             ))}

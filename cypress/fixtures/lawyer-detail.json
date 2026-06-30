@@ -1,0 +1,24 @@
+{
+  "id": 10,
+  "authUserId": 100,
+  "barNumber": "75001",
+  "bio": "Avocate au barreau de Paris depuis 12 ans, spécialisée en droit du travail et droit des affaires. Ancienne juriste en entreprise (CAC 40), j'accompagne salariés et employeurs dans leurs litiges prud'homaux, négociations collectives et restructurations. Trilingue français/anglais/espagnol.",
+  "hourlyRate": 220,
+  "yearsExperience": 12,
+  "languages": "Français, Anglais, Espagnol",
+  "available": true,
+  "averageRating": 4.5,
+  "reviewCount": 8,
+  "address": {
+    "street": "12 avenue de l'Opéra",
+    "city": "Paris",
+    "postalCode": "75001",
+    "department": "Paris",
+    "region": "Île-de-France"
+  },
+  "specialties": [
+    { "id": 1, "name": "Droit du travail", "slug": "droit-du-travail", "description": "Litiges employeur/salarié, licenciements, harcèlement" }
+  ],
+  "createdAt": "2026-06-29T22:46:00",
+  "updatedAt": "2026-06-29T22:46:00"
+}

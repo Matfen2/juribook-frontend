@@ -112,7 +112,7 @@ export default function LawyerDetailPage() {
         borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10,
       }}>
         <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => navigate(-1)}
+          <button data-cy="lawyer-detail-back-button" onClick={() => navigate(-1)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
             <i className="ti ti-arrow-left" style={{ fontSize: 16 }} aria-hidden />
             Retour aux résultats
@@ -133,7 +133,7 @@ export default function LawyerDetailPage() {
       <main style={{ maxWidth: 780, margin: '-40px auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
         {/* Hero card */}
-        <div style={{
+        <div data-cy="lawyer-detail-hero" style={{
           background: '#fff', border: '1px solid #E2E8F0', borderRadius: 20,
           padding: '1.75rem', marginBottom: 16,
           boxShadow: '0 8px 32px rgba(79,70,229,0.12)',
@@ -152,7 +152,7 @@ export default function LawyerDetailPage() {
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <span data-cy="lawyer-detail-bar-number" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Barreau n° {lawyer.barNumber}
               </span>
               <span style={{
@@ -197,7 +197,7 @@ export default function LawyerDetailPage() {
         {/* Bio */}
         {lawyer.bio && (
           <Section title="Présentation" icon="ti-user" color="#4F46E5">
-            <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-line' }}>
+            <p data-cy="lawyer-detail-bio" style={{ fontSize: 14, color: '#475569', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-line' }}>
               {lawyer.bio}
             </p>
           </Section>
@@ -288,6 +288,7 @@ export default function LawyerDetailPage() {
               : 'Cet avocat n\'accepte pas de nouveaux clients pour le moment'}
           </p>
           <button
+            data-cy="lawyer-detail-book-button"
             disabled={!lawyer.available}
             onClick={() => lawyer.available && alert('Fonctionnalité réservation — Sprint 3')}
             style={{
