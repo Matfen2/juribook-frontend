@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_AUTH_API_URL: string;
   readonly VITE_LAWYER_API_URL: string;
+  readonly VITE_BOOKING_API_URL: string;
 }
 
 interface ImportMeta {

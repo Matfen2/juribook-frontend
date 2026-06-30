@@ -1,9 +1,7 @@
 import axios from 'axios'
 
-// Instance axios dédiée au lawyer-service.
-// URL configurable via VITE_LAWYER_API_URL (suite à la review d'Abdelhadi, mentor).
 const lawyerAxios = axios.create({
-  baseURL: import.meta.env.VITE_LAWYER_API_URL,
+  baseURL: 'http://localhost:8082',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -14,6 +12,7 @@ lawyerAxios.interceptors.request.use(config => {
 })
 
 // ── Types ────────────────────────────────────────────────
+
 export interface Specialty {
   id: number
   name: string
@@ -29,6 +28,7 @@ export interface Address {
   region?: string
 }
 
+// Version allégée — liste de recherche
 export interface LawyerSearchResult {
   id: number
   barNumber: string
@@ -43,6 +43,7 @@ export interface LawyerSearchResult {
   specialties: Specialty[]
 }
 
+// Version complète — page détail
 export interface LawyerProfile {
   id: number
   authUserId: number
@@ -78,6 +79,7 @@ export interface SearchFilters {
 }
 
 // ── API calls ────────────────────────────────────────────
+
 export const searchLawyers = (filters: SearchFilters = {}) => {
   const params = new URLSearchParams()
   if (filters.specialty) params.append('specialty', filters.specialty)
@@ -92,5 +94,10 @@ export const searchLawyers = (filters: SearchFilters = {}) => {
 export const getSpecialties = () =>
   lawyerAxios.get<Specialty[]>('/api/specialties')
 
+// Retourne le profil complet (bio non tronquée, createdAt, updatedAt)
 export const getLawyerById = (id: number) =>
   lawyerAxios.get<LawyerProfile>(`/api/lawyers/${id}`)
+
+// Retourne le profil de l'avocat actuellement connecté (résout authUserId → lawyerId)
+export const getMyProfile = () =>
+  lawyerAxios.get<LawyerProfile>('/api/lawyers/profile')

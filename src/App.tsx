@@ -6,6 +6,7 @@ import RegisterClientPage from './pages/auth/RegisterClientPage';
 import RegisterLawyerPage from './pages/auth/RegisterLawyerPage';
 import SearchPage from './pages/search/SearchPage';
 import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
+import AvailabilityCalendarPage from './pages/lawyer/AvailabilityCalendarPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 // Placeholder dashboards
@@ -17,9 +18,13 @@ const ClientDashboard = () => (
     </a>
   </div>
 );
+
 const LawyerDashboard = () => (
   <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-    <h1 style={{ fontSize: 22, fontWeight: 700 }}>Dashboard Avocat — Sprint 3</h1>
+    <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Avocat</h1>
+    <a href="/lawyer/availabilities" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+      → Gérer mes disponibilités
+    </a>
   </div>
 );
 
@@ -48,6 +53,9 @@ function AppRoutes() {
       } />
       <Route path="/lawyer/dashboard" element={
         <ProtectedRoute role="LAWYER"><LawyerDashboard /></ProtectedRoute>
+      } />
+      <Route path="/lawyer/availabilities" element={
+        <ProtectedRoute role="LAWYER"><AvailabilityCalendarPage /></ProtectedRoute>
       } />
       <Route path="/admin/dashboard" element={
         <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
