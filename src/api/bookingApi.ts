@@ -136,7 +136,26 @@ export interface CreateBookingPayload {
   reason: string
 }
 
-// POST /api/bookings — CLIENT uniquement. Le clientId est résolu côté
+// POST /api/bookings : CLIENT uniquement. Le clientId est résolu côté
 // backend depuis le JWT, jamais envoyé dans le body.
 export const createBooking = (payload: CreateBookingPayload) =>
   bookingAxios.post<Booking>('/api/bookings', payload)
+
+// Version enrichie utilisée par l'historique (Sprint 4.11) — inclut la
+// date/heure du créneau, résolues côté backend.
+export interface BookingHistoryItem {
+  id: number
+  lawyerId: number
+  timeSlotId: number
+  status: BookingStatus
+  reason: string
+  date?: string       // "YYYY-MM-DD" - absent si le créneau source a été supprimé
+  startTime?: string  // "HH:mm:ss"
+  endTime?: string
+  createdAt: string
+}
+
+// GET /api/bookings : CLIENT uniquement. Historique de ses propres
+// réservations, triées du rendez-vous le plus récent au plus ancien.
+export const getMyBookings = () =>
+  bookingAxios.get<BookingHistoryItem[]>('/api/bookings')

@@ -8,14 +8,20 @@ import SearchPage from './pages/search/SearchPage';
 import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
 import AvailabilityCalendarPage from './pages/lawyer/AvailabilityCalendarPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ClientBookingsPage from './pages/client/ClientBookingsPage';
 
 // Placeholder dashboards
 const ClientDashboard = () => (
   <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
     <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Client</h1>
-    <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
-      → Trouver un avocat
-    </a>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Trouver un avocat
+      </a>
+      <a href="/client/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Mes rendez-vous
+      </a>
+    </div>
   </div>
 );
 
@@ -50,6 +56,9 @@ function AppRoutes() {
       {/* Dashboards protégés */}
       <Route path="/client/dashboard" element={
         <ProtectedRoute role="CLIENT"><ClientDashboard /></ProtectedRoute>
+      } />
+      <Route path="/client/bookings" element={
+        <ProtectedRoute role="CLIENT"><ClientBookingsPage /></ProtectedRoute>
       } />
       <Route path="/lawyer/dashboard" element={
         <ProtectedRoute role="LAWYER"><LawyerDashboard /></ProtectedRoute>
