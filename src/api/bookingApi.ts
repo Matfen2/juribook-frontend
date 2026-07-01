@@ -116,3 +116,27 @@ export const getSlots = (lawyerId: number, params: GetSlotsParams = {}) => {
   const qs = query.toString()
   return bookingAxios.get<TimeSlot[]>(`/api/lawyers/${lawyerId}/slots${qs ? `?${qs}` : ''}`)
 }
+
+// ── Réservation ────────────
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
+
+export interface Booking {
+  id: number
+  clientId: number
+  lawyerId: number
+  timeSlotId: number
+  status: BookingStatus
+  reason: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateBookingPayload {
+  timeSlotId: number
+  reason: string
+}
+
+// POST /api/bookings — CLIENT uniquement. Le clientId est résolu côté
+// backend depuis le JWT, jamais envoyé dans le body.
+export const createBooking = (payload: CreateBookingPayload) =>
+  bookingAxios.post<Booking>('/api/bookings', payload)

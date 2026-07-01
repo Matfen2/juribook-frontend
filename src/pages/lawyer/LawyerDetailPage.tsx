@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
-import { getSlots, type TimeSlot } from '../../api/bookingApi'
+import { getSlots, createBooking, type TimeSlot, type Booking } from '../../api/bookingApi'
+import { useAuth } from '../../context/AuthContext'
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -73,13 +74,11 @@ function Section({ title, icon, color, children }: { title: string; icon: string
   )
 }
 
-// ── Réservation — Sprint 3.6 ──────────────────────────────
-// Sélecteur de date + créneaux libres du jour, consommant
-// GET /api/lawyers/{id}/slots?date=... (Sprint 3.4).
-// La confirmation finale (POST /api/bookings) n'existe pas encore
-// côté backend — ce composant prépare la sélection et affiche un
-// récapitulatif clair, en attendant le sprint de réservation dédié.
-
+// ── Réservation : sélection + confirmation réelle ──
+// Sélecteur de date + créneaux libres du jour (GET /slots), motif de
+// consultation, puis POST /api/bookings. Réservation en 2 clics depuis
+// la fiche avocat : 1) cliquer un créneau, 2) cliquer "Confirmer" (le
+// motif se tape entre les deux, mais ne compte pas comme un clic).
 const WEEKDAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 function toISODate(d: Date): string {
@@ -90,7 +89,14 @@ function formatHM(time: string): string {
   return time.slice(0, 5)
 }
 
+function formatSlotDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+
 function BookingSection({ lawyerId, available }: { lawyerId: number; available: boolean }) {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
   const next14Days = useMemo(() => {
     const days: Date[] = []
     for (let i = 0; i < 14; i++) {
@@ -107,24 +113,76 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
 
+  // ── État du formulaire de réservation ──────
+  const [reason, setReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [bookingError, setBookingError] = useState<string | null>(null)
+  const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null)
+
+  const resetBookingForm = () => {
+    setSelectedSlot(null)
+    setReason('')
+    setBookingError(null)
+    setConfirmedBooking(null)
+  }
+
+  const selectSlot = (slot: TimeSlot, isSelected: boolean) => {
+    setSelectedSlot(isSelected ? null : slot)
+    setReason('')
+    setBookingError(null)
+    setConfirmedBooking(null)
+  }
+
   useEffect(() => {
     if (!available) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
-    setSelectedSlot(null)
+    resetBookingForm()
     getSlots(lawyerId, { date: selectedDate, status: 'AVAILABLE' })
       .then(res => setSlots(res.data))
       .catch(() => setError('Impossible de charger les créneaux. Le service de réservation est peut-être indisponible.'))
       .finally(() => setLoading(false))
   }, [lawyerId, selectedDate, available])
 
+  const handleConfirmBooking = async () => {
+    if (!selectedSlot) return
+    if (!reason.trim()) {
+      setBookingError('Merci d\u2019indiquer le motif de votre consultation.')
+      return
+    }
+
+    setSubmitting(true)
+    setBookingError(null)
+    try {
+      const { data } = await createBooking({ timeSlotId: selectedSlot.id, reason: reason.trim() })
+      setConfirmedBooking(data)
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number; data?: { message?: string } } }
+      const status = e.response?.status
+
+      if (status === 409) {
+        // Le créneau vient d'être pris par quelqu'un d'autre, on le retire
+        // de la liste plutôt que de laisser l'utilisateur retenter dans le vide.
+        setSlots(prev => prev.filter(s => s.id !== selectedSlot.id))
+        setSelectedSlot(null)
+        setBookingError('Ce créneau vient d\u2019être réservé par quelqu\u2019un d\u2019autre. Choisissez-en un autre.')
+      } else if (status === 401) {
+        navigate('/login')
+      } else {
+        setBookingError(e.response?.data?.message || 'Impossible de finaliser la réservation. Réessayez.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (!available) return null
 
   return (
     <Section title="Prendre rendez-vous" icon="ti-calendar-event" color="#4F46E5">
 
-      {/* Sélecteur de date — 14 prochains jours */}
+      {/* Sélecteur de date - 14 prochains jours */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 16 }}>
         {next14Days.map(d => {
           const iso = toISODate(d)
@@ -155,7 +213,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
         })}
       </div>
 
-      {/* Erreur */}
+      {/* Erreur de chargement des créneaux */}
       {error && (
         <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 12, borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
           {error}
@@ -172,7 +230,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
       )}
 
       {/* État vide */}
-      {!loading && !error && slots.length === 0 && (
+      {!loading && !error && slots.length === 0 && !confirmedBooking && (
         <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
           <i className="ti ti-calendar-off" style={{ fontSize: 28, color: '#CBD5E1' }} aria-hidden />
           <p style={{ fontSize: 13, color: '#94A3B8', margin: '8px 0 0' }}>
@@ -182,14 +240,15 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
       )}
 
       {/* Grille des créneaux libres */}
-      {!loading && !error && slots.length > 0 && (
+      {!loading && !error && slots.length > 0 && !confirmedBooking && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8, marginBottom: selectedSlot ? 16 : 0 }}>
           {slots.map(slot => {
             const isSelected = selectedSlot?.id === slot.id
             return (
               <button
                 key={slot.id}
-                onClick={() => setSelectedSlot(isSelected ? null : slot)}
+                data-cy="lawyer-detail-slot-button"
+                onClick={() => selectSlot(slot, isSelected)}
                 style={{
                   padding: '9px 6px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
                   border: isSelected ? 'none' : '1.5px solid #C7D2FE',
@@ -205,33 +264,126 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
         </div>
       )}
 
-      {/* Récapitulatif + confirmation */}
-      {selectedSlot && (
+      {/* Récapitulatif + motif + confirmation */}
+      {selectedSlot && !confirmedBooking && (
         <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '14px 16px' }}>
           <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 4px', fontWeight: 600 }}>Créneau sélectionné</p>
           <p style={{ fontSize: 14, color: '#1E293B', margin: '0 0 12px', fontWeight: 700 }}>
-            {new Date(selectedSlot.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {formatSlotDate(selectedSlot.date)}
             {' à '}{formatHM(selectedSlot.startTime)}–{formatHM(selectedSlot.endTime)}
           </p>
+
+          {!user ? (
+            // ── Visiteur non connecté ──────────────────────
+            <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 10, padding: '12px 14px' }}>
+              <p style={{ fontSize: 12.5, color: '#4338CA', margin: '0 0 10px', lineHeight: 1.5 }}>
+                Connectez-vous pour finaliser votre réservation.
+              </p>
+              <button
+                onClick={() => navigate('/login')}
+                style={{
+                  width: '100%', padding: '9px', borderRadius: 8, border: 'none',
+                  background: 'linear-gradient(135deg,#4F46E5,#7C3AED)', color: '#fff',
+                  fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                Se connecter
+              </button>
+            </div>
+          ) : user.role !== 'CLIENT' ? (
+            // ── Connecté mais pas un compte client (avocat/admin) ──
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#92400E', fontSize: 12.5, borderRadius: 10, padding: '12px 14px', lineHeight: 1.5 }}>
+              Seuls les comptes clients peuvent réserver un rendez-vous.
+            </div>
+          ) : (
+            // ── Formulaire de réservation ──────────────────
+            <>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
+                Motif de la consultation
+              </label>
+              <textarea
+                data-cy="lawyer-detail-booking-reason-input"
+                value={reason}
+                onChange={e => { setReason(e.target.value); setBookingError(null) }}
+                placeholder="Ex : Litige avec mon employeur"
+                rows={2}
+                style={{
+                  width: '100%', boxSizing: 'border-box', resize: 'vertical',
+                  padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E2E8F0',
+                  fontSize: 13, fontFamily: 'inherit', color: '#1E293B',
+                  outline: 'none', marginBottom: 10, background: '#fff',
+                }}
+              />
+
+              {bookingError && (
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 12, borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
+                  {bookingError}
+                </div>
+              )}
+
+              <button
+                data-cy="lawyer-detail-confirm-booking-button"
+                onClick={handleConfirmBooking}
+                disabled={submitting}
+                style={{
+                  width: '100%', padding: '10px', borderRadius: 10, border: 'none',
+                  background: 'linear-gradient(135deg,#4F46E5,#7C3AED)', color: '#fff',
+                  fontWeight: 700, fontSize: 13, cursor: submitting ? 'default' : 'pointer',
+                  opacity: submitting ? 0.7 : 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <i className="ti ti-loader-2" style={{ fontSize: 15, animation: 'spin 0.7s linear infinite' }} aria-hidden />
+                    Envoi en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="ti ti-check" style={{ fontSize: 15 }} aria-hidden />
+                    Confirmer ce créneau
+                  </>
+                )}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Confirmation de la demande envoyée */}
+      {confirmedBooking && (
+        <div data-cy="lawyer-detail-booking-success" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12, padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <i className="ti ti-check" style={{ fontSize: 15, color: '#fff' }} aria-hidden />
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#065F46', margin: '0 0 2px' }}>
+                Demande de réservation envoyée
+              </p>
+              <p style={{ fontSize: 12.5, color: '#047857', margin: 0, lineHeight: 1.5 }}>
+                {selectedSlot && (
+                  <>{formatSlotDate(selectedSlot.date)} à {formatHM(selectedSlot.startTime)} — en attente de confirmation par l'avocat.</>
+                )}
+              </p>
+            </div>
+          </div>
           <button
-            data-cy="lawyer-detail-confirm-booking-button"
-            onClick={() => alert(
-              `Réservation à confirmer :\n\n${new Date(selectedSlot.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à ${formatHM(selectedSlot.startTime)}\n\nLa confirmation de réservation arrive dans un prochain sprint.`
-            )}
+            onClick={resetBookingForm}
             style={{
-              width: '100%', padding: '10px', borderRadius: 10, border: 'none',
-              background: 'linear-gradient(135deg,#4F46E5,#7C3AED)', color: '#fff',
-              fontWeight: 700, fontSize: 13, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              fontSize: 12.5, color: '#059669', background: '#fff', border: '1.5px solid #A7F3D0',
+              borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 600,
             }}
           >
-            <i className="ti ti-check" style={{ fontSize: 15 }} aria-hidden />
-            Confirmer ce créneau
+            Réserver un autre créneau
           </button>
         </div>
       )}
 
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+      `}</style>
     </Section>
   )
 }
@@ -246,6 +398,7 @@ export default function LawyerDetailPage() {
 
   useEffect(() => {
     if (!id) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     getLawyerById(Number(id))
       .then(res => setLawyer(res.data))
@@ -443,7 +596,7 @@ export default function LawyerDetailPage() {
           </Section>
         )}
 
-        {/* Réservation — Sprint 3.6 */}
+        {/* Réservation */}
         <BookingSection lawyerId={lawyer.id} available={lawyer.available} />
 
         {!lawyer.available && (
