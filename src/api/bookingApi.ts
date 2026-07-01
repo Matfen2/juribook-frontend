@@ -141,15 +141,16 @@ export interface CreateBookingPayload {
 export const createBooking = (payload: CreateBookingPayload) =>
   bookingAxios.post<Booking>('/api/bookings', payload)
 
-// Version enrichie utilisée par l'historique (Sprint 4.11) — inclut la
-// date/heure du créneau, résolues côté backend.
+// Version enrichie utilisée par l'historique client et le
+// tableau de bord avocat, inclut la date/heure du créneau,
+// résolues côté backend.
 export interface BookingHistoryItem {
   id: number
   lawyerId: number
   timeSlotId: number
   status: BookingStatus
   reason: string
-  date?: string       // "YYYY-MM-DD" - absent si le créneau source a été supprimé
+  date?: string       // "YYYY-MM-DD" : absent si le créneau source a été supprimé
   startTime?: string  // "HH:mm:ss"
   endTime?: string
   createdAt: string
@@ -159,3 +160,21 @@ export interface BookingHistoryItem {
 // réservations, triées du rendez-vous le plus récent au plus ancien.
 export const getMyBookings = () =>
   bookingAxios.get<BookingHistoryItem[]>('/api/bookings')
+
+// GET /api/lawyers/{lawyerId}/bookings : LAWYER uniquement. Toutes les
+// réservations de l'avocat, triées du rendez-vous le plus proche au
+// plus lointain (file à traiter, pas un journal).
+export const getLawyerBookings = (lawyerId: number) =>
+  bookingAxios.get<BookingHistoryItem[]>(`/api/lawyers/${lawyerId}/bookings`)
+
+// PATCH /api/bookings/{id}/confirm : LAWYER uniquement.
+export const confirmBooking = (bookingId: number) =>
+  bookingAxios.patch<Booking>(`/api/bookings/${bookingId}/confirm`)
+
+// PATCH /api/bookings/{id}/reject : LAWYER uniquement.
+export const rejectBooking = (bookingId: number) =>
+  bookingAxios.patch<Booking>(`/api/bookings/${bookingId}/reject`)
+
+// PATCH /api/bookings/{id}/cancel : CLIENT ou LAWYER.
+export const cancelBooking = (bookingId: number) =>
+  bookingAxios.patch<Booking>(`/api/bookings/${bookingId}/cancel`)

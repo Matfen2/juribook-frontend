@@ -7,6 +7,7 @@ import RegisterLawyerPage from './pages/auth/RegisterLawyerPage';
 import SearchPage from './pages/search/SearchPage';
 import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
 import AvailabilityCalendarPage from './pages/lawyer/AvailabilityCalendarPage';
+import LawyerBookingsPage from './pages/lawyer/LawyerBookingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ClientBookingsPage from './pages/client/ClientBookingsPage';
 
@@ -28,9 +29,14 @@ const ClientDashboard = () => (
 const LawyerDashboard = () => (
   <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
     <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Avocat</h1>
-    <a href="/lawyer/availabilities" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
-      → Gérer mes disponibilités
-    </a>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <a href="/lawyer/availabilities" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Gérer mes disponibilités
+      </a>
+      <a href="/lawyer/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Mes rendez-vous
+      </a>
+    </div>
   </div>
 );
 
@@ -65,6 +71,9 @@ function AppRoutes() {
       } />
       <Route path="/lawyer/availabilities" element={
         <ProtectedRoute role="LAWYER"><AvailabilityCalendarPage /></ProtectedRoute>
+      } />
+      <Route path="/lawyer/bookings" element={
+        <ProtectedRoute role="LAWYER"><LawyerBookingsPage /></ProtectedRoute>
       } />
       <Route path="/admin/dashboard" element={
         <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
