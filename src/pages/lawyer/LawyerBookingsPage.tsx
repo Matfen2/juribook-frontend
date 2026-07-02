@@ -5,6 +5,7 @@ import {
   type BookingHistoryItem, type BookingStatus,
 } from '../../api/bookingApi'
 import { getMyProfile } from '../../api/lawyerApi'
+import NotificationBell from '../../components/NotificationBell'
 
 type TabKey = 'pending' | 'confirmed' | 'cancelled'
 
@@ -249,7 +250,7 @@ export default function LawyerBookingsPage() {
             </div>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
           </div>
-          <div style={{ width: 90 }} />
+          <NotificationBell />
         </div>
       </header>
 

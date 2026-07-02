@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyBookings, type BookingHistoryItem, type BookingStatus } from '../../api/bookingApi'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
+import NotificationBell from '../../components/NotificationBell'
 
-// ── Enrichissement local : on ne connaît que lawyerId côté booking-service,
+// Enrichissement local : on ne connaît que lawyerId côté booking-service,
 // le nom/ville de l'avocat vient du lawyer-service. On dédoublonne les
 // lawyerId avant de fetcher pour éviter un appel par ligne d'historique.
 type EnrichedBooking = BookingHistoryItem & { lawyer?: LawyerProfile }
@@ -210,7 +211,7 @@ export default function ClientBookingsPage() {
             </div>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
           </div>
-          <div style={{ width: 90 }} />
+          <NotificationBell />
         </div>
       </header>
 
