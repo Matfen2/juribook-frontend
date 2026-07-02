@@ -4,7 +4,8 @@ import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
 import { getSlots, createBooking, type TimeSlot, type Booking } from '../../api/bookingApi'
 import { useAuth } from '../../context/AuthContext'
 
-function initials(name: string) {
+function initials(name?: string) {
+  if (!name) return '?'
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
@@ -14,8 +15,9 @@ function initials(name: string) {
 
 const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
 const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
-function avatarStyle(seed: string) {
-  const i = seed.charCodeAt(0) % AVATAR_BG.length
+function avatarStyle(seed?: string) {
+  const safeSeed = seed && seed.length > 0 ? seed : '?'
+  const i = safeSeed.charCodeAt(0) % AVATAR_BG.length
   return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
 }
 
@@ -74,11 +76,12 @@ function Section({ title, icon, color, children }: { title: string; icon: string
   )
 }
 
-// ── Réservation : sélection + confirmation réelle ──
+// ── Réservation — Sprint 3.6 (sélection) + Sprint 4.10 (confirmation réelle) ──
 // Sélecteur de date + créneaux libres du jour (GET /slots), motif de
 // consultation, puis POST /api/bookings. Réservation en 2 clics depuis
 // la fiche avocat : 1) cliquer un créneau, 2) cliquer "Confirmer" (le
 // motif se tape entre les deux, mais ne compte pas comme un clic).
+
 const WEEKDAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 function toISODate(d: Date): string {
@@ -113,7 +116,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
 
-  // ── État du formulaire de réservation ──────
+  // ── État du formulaire de réservation (Sprint 4.10) ──────
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
@@ -162,7 +165,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
       const status = e.response?.status
 
       if (status === 409) {
-        // Le créneau vient d'être pris par quelqu'un d'autre, on le retire
+        // Le créneau vient d'être pris par quelqu'un d'autre — on le retire
         // de la liste plutôt que de laisser l'utilisateur retenter dans le vide.
         setSlots(prev => prev.filter(s => s.id !== selectedSlot.id))
         setSelectedSlot(null)
@@ -315,12 +318,6 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
                 }}
               />
 
-              {bookingError && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 12, borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
-                  {bookingError}
-                </div>
-              )}
-
               <button
                 data-cy="lawyer-detail-confirm-booking-button"
                 onClick={handleConfirmBooking}
@@ -347,6 +344,16 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {/* Erreur de réservation - bloc autonome : reste visible même si
+          selectedSlot a été réinitialisé (ex: 409, le créneau en
+          conflit est retiré de la sélection mais le message doit
+          quand même apparaître). */}
+      {bookingError && !confirmedBooking && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 12, borderRadius: 8, padding: '10px 14px', marginTop: selectedSlot ? 0 : 12 }}>
+          {bookingError}
         </div>
       )}
 
@@ -472,7 +479,7 @@ export default function LawyerDetailPage() {
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 data-cy="lawyer-detail-name" style={{ fontSize: 20, fontWeight: 700, color: '#1E293B', margin: '0 0 6px' }}>
-              {lawyer.name}
+              {lawyer.name ?? 'Avocat'}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
               <span data-cy="lawyer-detail-bar-number" style={{ fontSize: 12, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>

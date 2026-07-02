@@ -9,7 +9,8 @@ import {
   type SearchFilters,
 } from '../../api/lawyerApi'
 
-function initials(name: string) {
+function initials(name?: string) {
+  if (!name) return '?'
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
@@ -20,8 +21,9 @@ function initials(name: string) {
 
 const AVATAR_BG = ['#4F46E5', '#7C3AED', '#0891B2', '#059669', '#D97706']
 const AVATAR_TX = ['#EEF2FF', '#F5F3FF', '#E0F7FA', '#ECFDF5', '#FFFBEB']
-function avatarStyle(seed: string) {
-  const i = seed.charCodeAt(0) % AVATAR_BG.length
+function avatarStyle(seed?: string) {
+  const safeSeed = seed && seed.length > 0 ? seed : '?'
+  const i = safeSeed.charCodeAt(0) % AVATAR_BG.length
   return { bg: AVATAR_BG[i], tx: AVATAR_TX[i] }
 }
 
@@ -80,7 +82,7 @@ function LawyerCard({ lawyer, onClick }: { lawyer: LawyerSearchResult; onClick: 
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#1E293B', margin: '0 0 2px' }}>
-            {lawyer.name}
+            {lawyer.name ?? 'Avocat'}
           </p>
           <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 5px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Barreau n° {lawyer.barNumber}
