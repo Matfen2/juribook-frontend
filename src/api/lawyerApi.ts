@@ -12,7 +12,6 @@ lawyerAxios.interceptors.request.use(config => {
 })
 
 // ── Types ────────────────────────────────────────────────
-
 export interface Specialty {
   id: number
   name: string
@@ -80,6 +79,15 @@ export interface SearchFilters {
   size?: number
 }
 
+// Avis public (Sprint 6.5) — pas clientId/bookingId/visible, juste ce
+// que la page détail affiche
+export interface LawyerReview {
+  id: number
+  rating: number
+  comment?: string
+  createdAt: string
+}
+
 // ── API calls ────────────────────────────────────────────
 
 export const searchLawyers = (filters: SearchFilters = {}) => {
@@ -103,3 +111,7 @@ export const getLawyerById = (id: number) =>
 // Retourne le profil de l'avocat actuellement connecté (résout authUserId → lawyerId)
 export const getMyProfile = () =>
   lawyerAxios.get<LawyerProfile>('/api/lawyers/profile')
+
+// GET /api/lawyers/{lawyerId}/reviews — public, avis visibles uniquement (Sprint 6.5)
+export const getLawyerReviews = (lawyerId: number) =>
+  lawyerAxios.get<LawyerReview[]>(`/api/lawyers/${lawyerId}/reviews`)

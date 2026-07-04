@@ -178,3 +178,13 @@ export const rejectBooking = (bookingId: number) =>
 // PATCH /api/bookings/{id}/cancel : CLIENT ou LAWYER.
 export const cancelBooking = (bookingId: number) =>
   bookingAxios.patch<Booking>(`/api/bookings/${bookingId}/cancel`)
+
+// POST /api/bookings/{id}/documents - multipart, CLIENT propriétaire
+// uniquement, réservation PENDING ou CONFIRMED 
+export const uploadBookingDocument = (bookingId: number, file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return bookingAxios.post(`/api/bookings/${bookingId}/documents`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}

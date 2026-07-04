@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getMyBookings, type BookingHistoryItem, type BookingStatus } from '../../api/bookingApi'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
 import NotificationBell from '../../components/NotificationBell'
+import DocumentUpload from '../../components/DocumentUpload'
 
 // Enrichissement local : on ne connaît que lawyerId côté booking-service,
 // le nom/ville de l'avocat vient du lawyer-service. On dédoublonne les
@@ -135,6 +136,10 @@ function BookingCard({ booking }: { booking: EnrichedBooking }) {
           <p style={{ fontSize: 12.5, color: '#64748B', margin: 0, lineHeight: 1.5 }}>
             « {booking.reason} »
           </p>
+        )}
+
+        {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+          <DocumentUpload bookingId={booking.id} />
         )}
       </div>
     </div>

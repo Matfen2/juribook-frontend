@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
 import { getSlots, createBooking, type TimeSlot, type Booking } from '../../api/bookingApi'
 import { useAuth } from '../../context/AuthContext'
+import ReviewsList from '../../components/ReviewsList'
 
 function initials(name?: string) {
   if (!name) return '?'
@@ -602,6 +603,11 @@ export default function LawyerDetailPage() {
             </div>
           </Section>
         )}
+
+        {/* Avis */}
+        <Section title="Avis" icon="ti-star" color="#F59E0B">
+          <ReviewsList lawyerId={lawyer.id} />
+        </Section>
 
         {/* Réservation */}
         <BookingSection lawyerId={lawyer.id} available={lawyer.available} />
