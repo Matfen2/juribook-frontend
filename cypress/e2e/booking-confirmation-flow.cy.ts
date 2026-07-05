@@ -44,6 +44,8 @@ describe('Parcours complet : recherche → réservation → confirmation', () =>
     loginAs('CLIENT', CLIENT_TOKEN)
 
     cy.intercept('GET', '**/api/lawyers/10', { fixture: 'lawyer-detail.json' }).as('getLawyerDetail')
+    cy.intercept('GET', '**/api/lawyers/10/reviews', []).as('getReviews')
+    cy.intercept('GET', '**/api/lawyers/10/slots*', { fixture: 'slots-available.json' }).as('getSlots')
 
     cy.visit('/search')
     cy.wait('@getSpecialties')
@@ -52,12 +54,11 @@ describe('Parcours complet : recherche → réservation → confirmation', () =>
     cy.getByCy('lawyer-card').first().click()
     cy.url().should('include', '/lawyers/10')
     cy.wait('@getLawyerDetail')
+    cy.wait('@getReviews')
+    cy.wait('@getSlots')
     cy.getByCy('lawyer-detail-hero').should('be.visible')
 
     // ── Étape 2 : consultation des créneaux libres ──────────────────
-    cy.intercept('GET', '**/api/lawyers/10/slots*', { fixture: 'slots-available.json' }).as('getSlots')
-    cy.wait('@getSlots')
-
     cy.getByCy('lawyer-detail-slot-button').should('have.length.at.least', 1)
     cy.getByCy('lawyer-detail-slot-button').first().click()
 
@@ -135,10 +136,12 @@ describe('Parcours complet : recherche → réservation → confirmation', () =>
 
     cy.intercept('GET', '**/api/lawyers/10', { fixture: 'lawyer-detail.json' }).as('getLawyerDetail')
     cy.intercept('GET', '**/api/lawyers/10/slots*', { fixture: 'slots-available.json' }).as('getSlots')
+    cy.intercept('GET', '**/api/lawyers/10/reviews', []).as('getReviews')
 
     cy.visit('/lawyers/10')
     cy.wait('@getLawyerDetail')
     cy.wait('@getSlots')
+    cy.wait('@getReviews')
 
     cy.getByCy('lawyer-detail-slot-button').first().click()
     cy.getByCy('lawyer-detail-booking-reason-input').type('Consultation urgente')

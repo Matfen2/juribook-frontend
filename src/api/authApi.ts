@@ -1,11 +1,13 @@
 import axios from 'axios';
 
-// Instance axios pointant vers auth-service.
-// URL configurable via VITE_AUTH_API_URL (suite à la review d'Abdelhadi, mentor :
-// ne jamais coder une baseURL en dur, passer par une variable d'environnement
-// pour permettre des valeurs différentes en dev/staging/prod sans toucher au code).
+// Instance axios pointant vers l'api-gateway (point d'entrée unique,
+// plus directement vers auth-service depuis l'introduction de la
+// gateway), VITE_API_GATEWAY_URL remplace VITE_AUTH_API_URL, qui
+// n'a plus de raison d'être distincte des autres *_API_URL une fois
+// que toutes convergent vers le même port (8080). Reste configurable
+// via variable d'environnement, conformément à la review d'Abdelhadi.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_AUTH_API_URL,
+  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
   headers: { 'Content-Type': 'application/json' },
 });
 

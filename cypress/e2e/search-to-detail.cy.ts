@@ -95,6 +95,8 @@ describe('Parcours recherche → détail avocat', () => {
   it('navigue de la recherche vers la fiche détail au clic sur une carte', () => {
     // Intercepter le profil complet de l'avocat ciblé (id=10, Sophie Martin)
     cy.intercept('GET', '**/api/lawyers/10', { fixture: 'lawyer-detail.json' }).as('getLawyerDetail')
+    cy.intercept('GET', '**/api/lawyers/10/reviews', []).as('getReviews')
+    cy.intercept('GET', '**/api/lawyers/10/slots*', { fixture: 'slots-available.json' }).as('getSlots')
 
     cy.visit('/search')
     cy.wait('@search')
@@ -106,6 +108,8 @@ describe('Parcours recherche → détail avocat', () => {
     cy.url().should('include', '/lawyers/10')
 
     cy.wait('@getLawyerDetail')
+    cy.wait('@getReviews')
+    cy.wait('@getSlots')
 
     // La fiche détail doit afficher les informations complètes
     cy.getByCy('lawyer-detail-hero').should('be.visible')
@@ -117,18 +121,21 @@ describe('Parcours recherche → détail avocat', () => {
       .should('be.visible')
       .and('contain', 'Trilingue français/anglais/espagnol')
 
-    // Le CTA de réservation doit être actif car available = true
-    cy.getByCy('lawyer-detail-book-button').should('not.be.disabled')
+    // available = true → la grille de créneaux doit être affichée
+    // (pas de bouton "réserver" unique, un bouton par créneau libre)
+    cy.getByCy('lawyer-detail-slot-button').should('have.length.at.least', 1)
   })
 
   it('permet de revenir à la recherche depuis la fiche détail', () => {
     cy.intercept('GET', '**/api/lawyers/10', { fixture: 'lawyer-detail.json' }).as('getLawyerDetail')
+    cy.intercept('GET', '**/api/lawyers/10/reviews', []).as('getReviews')
 
     cy.visit('/search')
     cy.wait('@search')
 
     cy.getByCy('lawyer-card').first().click()
     cy.wait('@getLawyerDetail')
+    cy.wait('@getReviews')
 
     cy.getByCy('lawyer-detail-back-button').click()
 
@@ -150,11 +157,16 @@ describe('Parcours recherche → détail avocat', () => {
         specialties: [{ id: 3, name: 'Droit pénal', slug: 'droit-penal' }],
       },
     }).as('getUnavailableLawyer')
+    cy.intercept('GET', '**/api/lawyers/11/reviews', []).as('getReviews')
 
     cy.visit('/lawyers/11')
     cy.wait('@getUnavailableLawyer')
+    cy.wait('@getReviews')
 
-    cy.getByCy('lawyer-detail-book-button').should('be.disabled')
+    // available = false → BookingSection ne rend rien du tout (pas un
+    // bouton désactivé), remplacé par un message d'indisponibilité
+    cy.getByCy('lawyer-detail-slot-button').should('not.exist')
+    cy.contains("n'accepte pas de nouveaux clients").should('be.visible')
   })
 
   it('affiche un message d\'erreur si le lawyer-service est indisponible', () => {

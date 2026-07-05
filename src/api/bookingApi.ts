@@ -1,8 +1,9 @@
 import axios from 'axios'
 
-// Instance axios dédiée au booking-service (port 8083)
+// Instance axios pointant vers l'api-gateway, plus directement vers
+// booking-service depuis l'introduction de la gateway (port unique 8080).
 const bookingAxios = axios.create({
-  baseURL: import.meta.env.VITE_BOOKING_API_URL ?? 'http://localhost:8083',
+  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
   headers: { 'Content-Type': 'application/json' },
 })
 

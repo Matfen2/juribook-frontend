@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+// Instance axios pointant vers l'api-gateway - plus directement vers
+// lawyer-service depuis l'introduction de la gateway (port unique 8080).
 const lawyerAxios = axios.create({
-  baseURL: 'http://localhost:8082',
+  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -27,7 +29,7 @@ export interface Address {
   region?: string
 }
 
-// Version allégée — liste de recherche
+// Version allégée - liste de recherche
 export interface LawyerSearchResult {
   id: number
   name: string
@@ -43,7 +45,7 @@ export interface LawyerSearchResult {
   specialties: Specialty[]
 }
 
-// Version complète — page détail
+// Version complète - page détail
 export interface LawyerProfile {
   id: number
   authUserId: number
@@ -79,7 +81,7 @@ export interface SearchFilters {
   size?: number
 }
 
-// Avis public (Sprint 6.5) — pas clientId/bookingId/visible, juste ce
+// Avis public (Sprint 6.5) - pas clientId/bookingId/visible, juste ce
 // que la page détail affiche
 export interface LawyerReview {
   id: number
@@ -89,7 +91,6 @@ export interface LawyerReview {
 }
 
 // ── API calls ────────────────────────────────────────────
-
 export const searchLawyers = (filters: SearchFilters = {}) => {
   const params = new URLSearchParams()
   if (filters.specialty) params.append('specialty', filters.specialty)
@@ -112,6 +113,6 @@ export const getLawyerById = (id: number) =>
 export const getMyProfile = () =>
   lawyerAxios.get<LawyerProfile>('/api/lawyers/profile')
 
-// GET /api/lawyers/{lawyerId}/reviews — public, avis visibles uniquement (Sprint 6.5)
+// GET /api/lawyers/{lawyerId}/reviews - public, avis visibles uniquement
 export const getLawyerReviews = (lawyerId: number) =>
   lawyerAxios.get<LawyerReview[]>(`/api/lawyers/${lawyerId}/reviews`)
