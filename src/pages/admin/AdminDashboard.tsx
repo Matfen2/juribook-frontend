@@ -23,6 +23,10 @@ interface Stats {
 }
 
 // ── Instance axios admin ──────────────────────────────────
+// ⚠️ Pointé en dur sur auth-service (8081), pas sur la gateway comme
+// bookingApi.ts/lawyerApi.ts/authApi.ts/notificationApi.ts/analyticsApi.ts.
+// Laissé tel quel ici (pas demandé), mais à harmoniser un jour pour éviter
+// une 2e config de baseURL/token à maintenir en parallèle.
 const adminAxios = axios.create({ baseURL: 'http://localhost:8081' })
 adminAxios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
@@ -124,6 +128,31 @@ export default function AdminDashboard() {
               <span style={{ fontSize: 11, color: '#94A3B8', marginLeft: 8, fontWeight: 600 }}>ADMIN</span>
             </div>
           </div>
+
+          {/* Onglets de navigation entre les 3 vues admin */}
+          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10 }}>
+            <button
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: '#fff', color: '#4F46E5', cursor: 'pointer', boxShadow: '0 1px 3px rgba(79,70,229,0.15)' }}>
+              Avocats
+            </button>
+            <button onClick={() => navigate('/admin/analytics')}
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              Statistiques
+            </button>
+            <button onClick={() => navigate('/admin/audit')}
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              Audit
+            </button>
+            <button onClick={() => navigate('/admin/abuse-alerts')}
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              Abus
+            </button>
+            <button onClick={() => navigate('/admin/reviews')}
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              Avis
+            </button>
+          </div>
+
           <button onClick={() => { localStorage.clear(); navigate('/login') }}
             style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#64748B', background: 'none', border: '1px solid #E2E8F0', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontWeight: 500 }}>
             <i className="ti ti-logout" style={{ fontSize: 14 }} aria-hidden />

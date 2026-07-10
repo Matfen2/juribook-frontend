@@ -9,6 +9,10 @@ import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
 import AvailabilityCalendarPage from './pages/lawyer/AvailabilityCalendarPage';
 import LawyerBookingsPage from './pages/lawyer/LawyerBookingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
+import AdminAuditPage from './pages/admin/AdminAuditPage';
+import AdminAbuseAlertsPage from './pages/admin/AdminAbuseAlertsPage';
+import AdminReviewModerationPage from './pages/admin/AdminReviewModerationPage';
 import ClientBookingsPage from './pages/client/ClientBookingsPage';
 
 // Placeholder dashboards
@@ -77,6 +81,18 @@ function AppRoutes() {
       } />
       <Route path="/admin/dashboard" element={
         <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
+      } />
+      <Route path="/admin/analytics" element={
+        <ProtectedRoute role="ADMIN"><AdminAnalyticsPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/audit" element={
+        <ProtectedRoute role="ADMIN"><AdminAuditPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/abuse-alerts" element={
+        <ProtectedRoute role="ADMIN"><AdminAbuseAlertsPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/reviews" element={
+        <ProtectedRoute role="ADMIN"><AdminReviewModerationPage /></ProtectedRoute>
       } />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
