@@ -132,6 +132,7 @@ export default function AvailabilityCalendarPage() {
     }
   }, [lawyerId, weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void loadWeek() }, [loadWeek])
 
   const showToast = (msg: string) => {
@@ -238,9 +239,10 @@ export default function AvailabilityCalendarPage() {
           </div>
         )}
 
-        {/* Grille semaine */}
+        {/* Grille semaine — scroll horizontal sur mobile */}
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const, marginBottom: 4 }}>
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10,
+          display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, minWidth: 560,
           opacity: loading ? 0.5 : 1, transition: 'opacity 0.15s',
         }}>
           {DAYS.map((day, i) => {
@@ -309,6 +311,7 @@ export default function AvailabilityCalendarPage() {
             )
           })}
         </div>
+        </div>{/* fin wrapper scroll */}
 
         {/* Légende */}
         <div style={{ display: 'flex', gap: 16, marginTop: 24, flexWrap: 'wrap' }}>

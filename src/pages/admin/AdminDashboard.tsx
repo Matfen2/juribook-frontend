@@ -118,7 +118,7 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <header style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 1.5rem', height: 'auto', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ti ti-scale" style={{ fontSize: 18, color: '#fff' }} aria-hidden />
@@ -130,25 +130,25 @@ export default function AdminDashboard() {
           </div>
 
           {/* Onglets de navigation entre les 3 vues admin */}
-          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10, overflowX: 'auto' as const, flexShrink: 1, minWidth: 0 }}>
             <button
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: '#fff', color: '#4F46E5', cursor: 'pointer', boxShadow: '0 1px 3px rgba(79,70,229,0.15)' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: '#fff', color: '#4F46E5', cursor: 'pointer', boxShadow: '0 1px 3px rgba(79,70,229,0.15)' }}>
               Avocats
             </button>
             <button onClick={() => navigate('/admin/analytics')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Statistiques
             </button>
             <button onClick={() => navigate('/admin/audit')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Audit
             </button>
             <button onClick={() => navigate('/admin/abuse-alerts')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Abus
             </button>
             <button onClick={() => navigate('/admin/reviews')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Avis
             </button>
           </div>

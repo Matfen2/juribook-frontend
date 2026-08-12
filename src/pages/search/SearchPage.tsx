@@ -14,7 +14,6 @@ function initials(name?: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  // Pour "Maître Sophie Martin" → garder les 2 derniers mots (prénom + nom)
   const relevant = parts.slice(-2)
   return relevant.map(p => p[0]).join('').toUpperCase()
 }
@@ -211,11 +210,12 @@ export default function SearchPage() {
         background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10,
       }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1rem', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={() => navigate('/client/dashboard')}
+            className="search-back-btn"
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
             <i className="ti ti-arrow-left" style={{ fontSize: 16 }} aria-hidden />
-            Tableau de bord
+            <span className="search-back-label">Tableau de bord</span>
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -223,13 +223,14 @@ export default function SearchPage() {
             </div>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
           </div>
-          <div style={{ width: 120 }} />
+          {/* Spacer adaptatif */}
+          <div className="search-header-spacer" />
         </div>
       </header>
 
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2.5rem 1.5rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
+      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
           Trouver un avocat
         </h1>
         <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0 }}>
@@ -237,17 +238,18 @@ export default function SearchPage() {
         </p>
       </div>
 
-      <main style={{ maxWidth: 1100, margin: '-1.5rem auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
+      <main style={{ maxWidth: 1100, margin: '-1.5rem auto 0', padding: '0 1rem 3rem', position: 'relative', zIndex: 1 }}>
 
         {/* Formulaire de recherche */}
         <form onSubmit={handleSubmit} style={{
-          background: '#fff', borderRadius: 16, padding: '1.5rem',
+          background: '#fff', borderRadius: 16, padding: '1.25rem',
           marginBottom: '1.5rem', boxShadow: '0 4px 24px rgba(79,70,229,0.10)',
           border: '1px solid #E2E8F0',
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' }}>
+          <div className="search-form-grid">
 
-            <div style={{ gridColumn: 'span 2' }}>
+            {/* Recherche libre — pleine largeur sur mobile, span 2 sur desktop */}
+            <div className="search-field-full">
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                 Recherche libre
               </label>
@@ -294,7 +296,7 @@ export default function SearchPage() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <button data-cy="search-submit-button" type="submit" disabled={loading}
                 style={{ flex: 1, background: loading ? '#A5B4FC' : 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(79,70,229,0.3)', transition: 'opacity 0.15s' }}>
                 {loading ? 'Recherche...' : 'Rechercher'}
@@ -311,7 +313,7 @@ export default function SearchPage() {
 
         {/* Compteur */}
         {results && !loading && (
-          <div data-cy="search-results-count" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+          <div data-cy="search-results-count" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem', flexWrap: 'wrap' }}>
             {results.totalElements > 0 && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4F46E5', background: '#EEF2FF', padding: '4px 12px', borderRadius: 99 }}>
                 <i className="ti ti-users" style={{ fontSize: 13 }} aria-hidden />
@@ -335,7 +337,7 @@ export default function SearchPage() {
 
         {/* Skeleton */}
         {loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          <div className="search-results-grid">
             {[...Array(6)].map((_, i) => (
               <div key={i} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 16, padding: '1.25rem' }}>
                 <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
@@ -354,7 +356,7 @@ export default function SearchPage() {
 
         {/* État vide */}
         {!loading && results?.content.length === 0 && (
-          <div data-cy="search-empty-state" style={{ textAlign: 'center', padding: '5rem 0' }}>
+          <div data-cy="search-empty-state" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
             <div style={{ width: 72, height: 72, borderRadius: 20, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <i className="ti ti-scale" style={{ fontSize: 36, color: '#4F46E5' }} aria-hidden />
             </div>
@@ -367,9 +369,9 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Grille */}
+        {/* Grille résultats */}
         {!loading && results && results.content.length > 0 && (
-          <div data-cy="search-results-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          <div data-cy="search-results-grid" className="search-results-grid">
             {results.content.map(lawyer => (
               <LawyerCard key={lawyer.id} lawyer={lawyer} onClick={() => navigate(`/lawyers/${lawyer.id}`)} />
             ))}
@@ -383,7 +385,7 @@ export default function SearchPage() {
               style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: '8px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', background: '#fff', cursor: results.number === 0 ? 'not-allowed' : 'pointer', opacity: results.number === 0 ? 0.4 : 1, fontWeight: 500, color: '#4F46E5' }}>
               <i className="ti ti-arrow-left" style={{ fontSize: 14 }} aria-hidden />Précédent
             </button>
-            <span style={{ fontSize: 13, color: '#64748B', padding: '0 16px', fontWeight: 500 }}>
+            <span style={{ fontSize: 13, color: '#64748B', padding: '0 12px', fontWeight: 500 }}>
               {results.number + 1} / {results.totalPages}
             </span>
             <button disabled={results.number >= results.totalPages - 1} onClick={() => handlePage(results.number + 1)}

@@ -451,7 +451,7 @@ export default function LawyerDetailPage() {
             </div>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#1E293B' }}>JuriBook</span>
           </div>
-          <div style={{ width: 120 }} />
+          <div className="detail-header-spacer" />
         </div>
       </header>
 
@@ -465,7 +465,7 @@ export default function LawyerDetailPage() {
           background: '#fff', border: '1px solid #E2E8F0', borderRadius: 20,
           padding: '1.75rem', marginBottom: 16,
           boxShadow: '0 8px 32px rgba(79,70,229,0.12)',
-          display: 'flex', alignItems: 'flex-start', gap: 20,
+          display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' as const,
         }}>
           {/* Avatar */}
           <div style={{

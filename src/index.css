@@ -44,3 +44,78 @@
     box-shadow: 0 0 0 2px #3B82F6;
   }
 }
+/* ═══════════════════════════════════════════
+   RESPONSIVE - SearchPage
+   ═══════════════════════════════════════════ */
+
+/* Grille résultats : 1 col mobile, 2 tablette, 3 desktop */
+.search-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .search-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .search-results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Formulaire de recherche : 1 col mobile, grille desktop */
+.search-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .search-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .search-field-full {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 900px) {
+  .search-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    align-items: end;
+  }
+  .search-field-full {
+    grid-column: span 2;
+  }
+}
+
+/* Header : spacer adaptatif + label texte caché sur très petit écran */
+.search-header-spacer {
+  width: 120px;
+}
+
+@media (max-width: 480px) {
+  .search-header-spacer {
+    display: none;
+  }
+  .search-back-label {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE - Pages communes (header sticky)
+   ═══════════════════════════════════════════ */
+
+/* Padding horizontal réduit sur mobile */
+@media (max-width: 640px) {
+  main {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
