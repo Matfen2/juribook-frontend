@@ -14,6 +14,9 @@ import AdminAuditPage from './pages/admin/AdminAuditPage';
 import AdminAbuseAlertsPage from './pages/admin/AdminAbuseAlertsPage';
 import AdminReviewModerationPage from './pages/admin/AdminReviewModerationPage';
 import ClientBookingsPage from './pages/client/ClientBookingsPage';
+import NotFoundPage from './pages/error/NotFoundPage';
+import ForbiddenPage from './pages/error/ForbiddenPage';
+import ServerErrorPage from './pages/error/ServerErrorPage';
 
 // Placeholder dashboards
 const ClientDashboard = () => (
@@ -47,7 +50,7 @@ const LawyerDashboard = () => (
 const ProtectedRoute = ({ children, role }: { children: ReactElement; role: string }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== role) return <Navigate to="/login" replace />;
+  if (user.role !== role) return <ForbiddenPage />;
   return children;
 };
 
@@ -62,6 +65,10 @@ function AppRoutes() {
       {/* Recherche publique */}
       <Route path="/search"          element={<SearchPage />} />
       <Route path="/lawyers/:id"     element={<LawyerDetailPage />} />
+
+      {/* Pages d'erreur */}
+      <Route path="/403"             element={<ForbiddenPage />} />
+      <Route path="/500"             element={<ServerErrorPage />} />
 
       {/* Dashboards protégés */}
       <Route path="/client/dashboard" element={
@@ -95,7 +102,8 @@ function AppRoutes() {
         <ProtectedRoute role="ADMIN"><AdminReviewModerationPage /></ProtectedRoute>
       } />
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* 404 - doit être en dernier */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
