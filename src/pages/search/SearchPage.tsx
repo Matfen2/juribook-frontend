@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSEO } from '../../hooks/useSEO'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -161,6 +162,12 @@ const INITIAL_FILTERS: SearchFilters = {
 }
 
 export default function SearchPage() {
+  useSEO({
+    title: 'Trouver un avocat',
+    description: 'Recherchez un avocat par spécialité et ville. Consultez les profils, disponibilités et avis vérifiés. Réservation en ligne gratuite.',
+    canonical: '/search',
+  })
+
   const navigate = useNavigate()
 
   const [filters, setFilters]         = useState<SearchFilters>(INITIAL_FILTERS)

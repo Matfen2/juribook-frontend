@@ -4,6 +4,7 @@ import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
 import { getSlots, createBooking, type TimeSlot, type Booking } from '../../api/bookingApi'
 import { useAuth } from '../../context/AuthContext'
 import ReviewsList from '../../components/ReviewsList'
+import { useSEO } from '../../hooks/useSEO'
 import { motion } from 'framer-motion'
 
 function initials(name?: string) {
@@ -414,6 +415,16 @@ export default function LawyerDetailPage() {
       .catch(() => setError('Profil introuvable ou service indisponible.'))
       .finally(() => setLoading(false))
   }, [id])
+
+  // SEO dynamique selon le profil avocat
+  useSEO({
+    title: lawyer ? `Me ${lawyer.name} — Avocat` : 'Profil avocat',
+    description: lawyer?.bio
+      ? `${lawyer.bio.slice(0, 120)}...`
+      : 'Consultez le profil de cet avocat sur JuriBook, prenez rendez-vous en ligne.',
+    canonical: `/lawyers/${id}`,
+    ogType: 'profile',
+  })
 
   if (loading) return <Skeleton />
 
