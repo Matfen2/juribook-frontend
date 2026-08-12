@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   getDailyBookings, getCancellationRate, getSpecialtyPopularity,
@@ -264,11 +265,11 @@ export default function AdminAnalyticsPage() {
     : '—'
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 1.5rem', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 8 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ti ti-scale" style={{ fontSize: 18, color: '#fff' }} aria-hidden />
@@ -280,7 +281,7 @@ export default function AdminAnalyticsPage() {
           </div>
 
           {/* Onglets de navigation entre les 3 vues admin (Sprint 7.6-7.7) */}
-          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10, overflowX: 'auto' as const, flexShrink: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10 }}>
             <button onClick={() => navigate('/admin/dashboard')}
               style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Avocats
@@ -312,14 +313,14 @@ export default function AdminAnalyticsPage() {
       </header>
 
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1.5rem' }}>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1.5rem' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Statistiques temps réel</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
             Alimentées en direct depuis les événements Kafka — jamais de calcul sur les tables transactionnelles
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <main style={{ maxWidth: 1100, margin: '-1rem auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
@@ -444,6 +445,6 @@ export default function AdminAnalyticsPage() {
       </main>
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-    </div>
+    </motion.div>
   )
 }

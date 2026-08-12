@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getMyBookings, type BookingHistoryItem, type BookingStatus } from '../../api/bookingApi'
 import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
@@ -197,7 +198,7 @@ export default function ClientBookingsPage() {
   const activeList = grouped[activeTab]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{
@@ -221,12 +222,12 @@ export default function ClientBookingsPage() {
       </header>
 
       {/* Bandeau violet */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', height: 80 }} />
+      <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', height: 80, transformOrigin: 'left' }} />
 
       <main style={{ maxWidth: 780, margin: '-40px auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
         {/* Titre */}
-        <div style={{
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }} style={{
           background: '#fff', border: '1px solid #E2E8F0', borderRadius: 20,
           padding: '1.5rem 1.75rem', marginBottom: 16,
           boxShadow: '0 8px 32px rgba(79,70,229,0.12)',
@@ -238,7 +239,7 @@ export default function ClientBookingsPage() {
           <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
             Historique de vos consultations, passées et à venir
           </p>
-        </div>
+        </motion.div>
 
         {/* Onglets */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
@@ -314,6 +315,6 @@ export default function ClientBookingsPage() {
       </main>
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-    </div>
+    </motion.div>
   )
 }

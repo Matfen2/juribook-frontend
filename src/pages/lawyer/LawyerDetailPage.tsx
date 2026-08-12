@@ -4,6 +4,7 @@ import { getLawyerById, type LawyerProfile } from '../../api/lawyerApi'
 import { getSlots, createBooking, type TimeSlot, type Booking } from '../../api/bookingApi'
 import { useAuth } from '../../context/AuthContext'
 import ReviewsList from '../../components/ReviewsList'
+import { motion } from 'framer-motion'
 
 function initials(name?: string) {
   if (!name) return '?'
@@ -42,7 +43,7 @@ function Skeleton() {
     <div style={{ width: w, height: h, background: '#F1F5F9', borderRadius: 6, animation: 'pulse 1.5s ease-in-out infinite' }} />
   )
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '2rem 1.5rem' }}>
         <div style={{ display: 'flex', gap: 20, marginBottom: 32, background: '#fff', borderRadius: 16, padding: '1.75rem', border: '1px solid #E2E8F0' }}>
@@ -57,7 +58,7 @@ function Skeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -432,7 +433,7 @@ export default function LawyerDetailPage() {
   const av = avatarStyle(lawyer.name)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{
@@ -456,7 +457,7 @@ export default function LawyerDetailPage() {
       </header>
 
       {/* Bandeau violet */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', height: 80 }} />
+      <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', height: 80, transformOrigin: 'left' }} />
 
       <main style={{ maxWidth: 780, margin: '-40px auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
@@ -627,6 +628,6 @@ export default function LawyerDetailPage() {
       </main>
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-    </div>
+    </motion.div>
   )
 }

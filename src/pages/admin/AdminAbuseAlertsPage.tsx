@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { searchUsers, activateUser, type AdminUser, type AdminUserPage } from '../../api/adminUserApi'
 
@@ -121,7 +122,7 @@ export default function AdminAbuseAlertsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -242,17 +243,22 @@ export default function AdminAbuseAlertsPage() {
         )}
       </main>
 
+      <AnimatePresence>
       {toast && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          background: '#1E293B', color: '#fff', fontSize: 13, fontWeight: 500,
-          padding: '10px 20px', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100,
-        }}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+          style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            background: '#1E293B', color: '#fff', fontSize: 13, fontWeight: 500,
+            padding: '10px 20px', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100,
+          }}
+        >
           {toast}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
-    </div>
+    </motion.div>
   )
 }

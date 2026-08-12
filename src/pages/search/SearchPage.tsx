@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   searchLawyers,
@@ -203,7 +204,7 @@ export default function SearchPage() {
   const hasFilters   = filters.specialty || filters.city || filters.query || filters.maxRate
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{
@@ -229,14 +230,14 @@ export default function SearchPage() {
       </header>
 
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1rem', textAlign: 'center' }}>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1rem', textAlign: 'center' }}>
         <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>
           Trouver un avocat
         </h1>
         <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0 }}>
           Des experts juridiques près de chez vous, disponibles rapidement
         </p>
-      </div>
+      </motion.div>
 
       <main style={{ maxWidth: 1100, margin: '-1.5rem auto 0', padding: '0 1rem 3rem', position: 'relative', zIndex: 1 }}>
 
@@ -371,11 +372,13 @@ export default function SearchPage() {
 
         {/* Grille résultats */}
         {!loading && results && results.content.length > 0 && (
-          <div data-cy="search-results-grid" className="search-results-grid">
+          <motion.div data-cy="search-results-grid" className="search-results-grid" initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}>
             {results.content.map(lawyer => (
-              <LawyerCard key={lawyer.id} lawyer={lawyer} onClick={() => navigate(`/lawyers/${lawyer.id}`)} />
+              <motion.div key={lawyer.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+                <LawyerCard lawyer={lawyer} onClick={() => navigate(`/lawyers/${lawyer.id}`)} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Pagination */}
@@ -397,6 +400,6 @@ export default function SearchPage() {
       </main>
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }`}</style>
-    </div>
+    </motion.div>
   )
 }

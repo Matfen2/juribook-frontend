@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
@@ -114,11 +115,11 @@ export default function AdminDashboard() {
   const displayed = filter === 'ALL' ? lawyers : lawyers.filter(l => l.lawyerStatus === filter)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFF 0%, #F0F4FF 100%)' }}>
 
       {/* Header */}
       <header style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 1.5rem', height: 'auto', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 8 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 9, background: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ti ti-scale" style={{ fontSize: 18, color: '#fff' }} aria-hidden />
@@ -130,25 +131,25 @@ export default function AdminDashboard() {
           </div>
 
           {/* Onglets de navigation entre les 3 vues admin */}
-          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10, overflowX: 'auto' as const, flexShrink: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', padding: 3, borderRadius: 10 }}>
             <button
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: '#fff', color: '#4F46E5', cursor: 'pointer', boxShadow: '0 1px 3px rgba(79,70,229,0.15)' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: '#fff', color: '#4F46E5', cursor: 'pointer', boxShadow: '0 1px 3px rgba(79,70,229,0.15)' }}>
               Avocats
             </button>
             <button onClick={() => navigate('/admin/analytics')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Statistiques
             </button>
             <button onClick={() => navigate('/admin/audit')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Audit
             </button>
             <button onClick={() => navigate('/admin/abuse-alerts')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Abus
             </button>
             <button onClick={() => navigate('/admin/reviews')}
-              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
+              style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: 'none', background: 'transparent', color: '#64748B', cursor: 'pointer' }}>
               Avis
             </button>
           </div>
@@ -162,12 +163,12 @@ export default function AdminDashboard() {
       </header>
 
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1.5rem' }}>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)', padding: '2rem 1.5rem' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Dashboard administrateur</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: 0 }}>Validation des profils avocats · Gestion des accès</p>
         </div>
-      </div>
+      </motion.div>
 
       <main style={{ maxWidth: 1100, margin: '-1rem auto 0', padding: '0 1.5rem 3rem', position: 'relative', zIndex: 1 }}>
 
@@ -237,9 +238,9 @@ export default function AdminDashboard() {
 
         {/* Liste avocats */}
         {!loading && displayed.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <motion.div initial='hidden' animate='visible' variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {displayed.map(lawyer => (
-              <div key={lawyer.id} style={{
+              <motion.div key={lawyer.id} variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }} style={{
                 background: '#fff', border: '1px solid #E2E8F0', borderRadius: 14, padding: '1.25rem',
                 display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
                 borderLeft: lawyer.lawyerStatus === 'PENDING' ? '4px solid #D97706' :
@@ -291,7 +292,9 @@ export default function AdminDashboard() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                   {lawyer.lawyerStatus !== 'APPROVED' && (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: actionId === lawyer.id ? 1 : 1.03 }}
+                      whileTap={{ scale: actionId === lawyer.id ? 1 : 0.97 }}
                       disabled={actionId === lawyer.id}
                       onClick={() => handleStatus(lawyer.id, 'APPROVED')}
                       style={{
@@ -304,10 +307,12 @@ export default function AdminDashboard() {
                     >
                       <i className="ti ti-circle-check" style={{ fontSize: 14 }} aria-hidden />
                       Valider
-                    </button>
+                    </motion.button>
                   )}
                   {lawyer.lawyerStatus !== 'REJECTED' && (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: actionId === lawyer.id ? 1 : 1.03 }}
+                      whileTap={{ scale: actionId === lawyer.id ? 1 : 0.97 }}
                       disabled={actionId === lawyer.id}
                       onClick={() => handleStatus(lawyer.id, 'REJECTED')}
                       style={{
@@ -320,7 +325,7 @@ export default function AdminDashboard() {
                     >
                       <i className="ti ti-circle-x" style={{ fontSize: 14 }} aria-hidden />
                       Refuser
-                    </button>
+                    </motion.button>
                   )}
                   {actionId === lawyer.id && (
                     <span style={{ fontSize: 12, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -329,15 +334,15 @@ export default function AdminDashboard() {
                     </span>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
 
       <style>{`
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
-    </div>
+    </motion.div>
   )
 }
