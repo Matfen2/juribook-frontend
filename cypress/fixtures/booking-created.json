@@ -1,0 +1,10 @@
+{
+  "id": 900,
+  "clientId": 42,
+  "lawyerId": 10,
+  "timeSlotId": 501,
+  "status": "PENDING",
+  "reason": "Litige avec mon employeur",
+  "createdAt": "2026-07-02T09:00:00",
+  "updatedAt": "2026-07-02T09:00:00"
+}

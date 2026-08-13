@@ -1,0 +1,20 @@
+[
+  {
+    "id": 501,
+    "lawyerId": 10,
+    "availabilityId": 3,
+    "date": "2026-07-06",
+    "startTime": "09:00:00",
+    "endTime": "09:30:00",
+    "status": "AVAILABLE"
+  },
+  {
+    "id": 502,
+    "lawyerId": 10,
+    "availabilityId": 3,
+    "date": "2026-07-06",
+    "startTime": "09:30:00",
+    "endTime": "10:00:00",
+    "status": "AVAILABLE"
+  }
+]

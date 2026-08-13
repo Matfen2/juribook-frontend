@@ -1,0 +1,15 @@
+{
+  "id": 10,
+  "authUserId": 55,
+  "name": "Sophie Martin",
+  "barNumber": "75001",
+  "bio": "Avocate au barreau de Paris, spécialisée en droit du travail. Trilingue français/anglais/espagnol.",
+  "hourlyRate": 220,
+  "yearsExperience": 12,
+  "languages": "Français, Anglais, Espagnol",
+  "available": true,
+  "averageRating": 4.5,
+  "reviewCount": 8,
+  "address": { "city": "Paris", "postalCode": "75001", "region": "Île-de-France" },
+  "specialties": [{ "id": 1, "name": "Droit du travail", "slug": "droit-du-travail" }]
+}

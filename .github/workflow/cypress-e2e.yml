@@ -1,0 +1,265 @@
+name: Cypress E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cypress:
+    name: Cypress E2E — 43 tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ── 1. Checkout frontend ────────────────────────────────────────
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      # ── 2. Checkout docker-compose (infra) ─────────────────────────
+      - name: Checkout k8s-manifests (docker-compose)
+        uses: actions/checkout@v4
+        with:
+          repository: Matfen2/juribook-k8s-manifests
+          path: infra
+
+      # ── 3. Setup Node ───────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # ── 4. Démarrer l'infrastructure (Kafka + PostgreSQL) ───────────
+      - name: Start infrastructure (Kafka + PostgreSQL)
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.ci.yml up -d
+          echo "Waiting for infrastructure to be ready..."
+          sleep 20
+
+      # ── 5. Health-check Kafka ───────────────────────────────────────
+      - name: Wait for Kafka
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec $(docker ps -qf "name=kafka") \
+              kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null; then
+              echo "Kafka ready"
+              break
+            fi
+            echo "Waiting for Kafka... ($i/30)"
+            sleep 5
+          done
+
+      # ── 6. Démarrer les microservices ───────────────────────────────
+      - name: Start microservices
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.ci.yml --profile services up -d
+          echo "Waiting for Spring Boot services to start (JVM warmup)..."
+          sleep 60
+
+      # ── 7. Health-check API Gateway ─────────────────────────────────
+      - name: Wait for API Gateway
+        run: |
+          for i in $(seq 1 24); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              http://localhost:8080/actuator/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "API Gateway ready (attempt $i)"
+              break
+            fi
+            echo "Gateway not ready yet — HTTP $STATUS (attempt $i/24)"
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: API Gateway failed to start"
+            docker compose -f infra/docker-compose.ci.yml logs
+            exit 1
+          fi
+
+      # ── 8. Installer les dépendances frontend ──────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 9. Build du frontend ────────────────────────────────────────
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: http://localhost:8080
+
+      # ── 10. Démarrer le frontend en preview ─────────────────────────
+      - name: Start frontend (preview)
+        run: |
+          npm run preview -- --port 5173 &
+          sleep 5
+        env:
+          VITE_API_BASE_URL: http://localhost:8080
+
+      # ── 11. Lancer Cypress ──────────────────────────────────────────
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          browser: chrome
+          config: baseUrl=http://localhost:5173
+          wait-on: http://localhost:5173
+          wait-on-timeout: 60
+        env:
+          CYPRESS_BASE_URL: http://localhost:5173
+
+      # ── 12. Upload artifacts si échec ───────────────────────────────
+      - name: Upload Cypress screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+          retention-days: 7
+
+      # ── 13. Logs des services si échec ──────────────────────────────
+      - name: Dump service logs (on failure)
+        if: failure()
+        working-directory: infra
+        run: docker compose -f docker-compose.ci.yml logs --tail=100name: Cypress E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cypress:
+    name: Cypress E2E — 43 tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ── 1. Checkout frontend ────────────────────────────────────────
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      # ── 2. Checkout docker-compose (infra) ─────────────────────────
+      - name: Checkout k8s-manifests (docker-compose)
+        uses: actions/checkout@v4
+        with:
+          repository: Matfen2/juribook-k8s-manifests
+          path: infra
+
+      # ── 3. Setup Node ───────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # ── 4. Démarrer l'infrastructure (Kafka + PostgreSQL) ───────────
+      - name: Start infrastructure (Kafka + PostgreSQL)
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.ci.yml up -d
+          echo "Waiting for infrastructure to be ready..."
+          sleep 20
+
+      # ── 5. Health-check Kafka ───────────────────────────────────────
+      - name: Wait for Kafka
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec $(docker ps -qf "name=kafka") \
+              kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null; then
+              echo "Kafka ready"
+              break
+            fi
+            echo "Waiting for Kafka... ($i/30)"
+            sleep 5
+          done
+
+      # ── 6. Démarrer les microservices ───────────────────────────────
+      - name: Start microservices
+        working-directory: infra
+        run: |
+          docker compose -f docker-compose.ci.yml --profile services up -d
+          echo "Waiting for Spring Boot services to start (JVM warmup)..."
+          sleep 60
+
+      # ── 7. Health-check API Gateway ─────────────────────────────────
+      - name: Wait for API Gateway
+        run: |
+          for i in $(seq 1 24); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              http://localhost:8080/actuator/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "API Gateway ready (attempt $i)"
+              break
+            fi
+            echo "Gateway not ready yet — HTTP $STATUS (attempt $i/24)"
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: API Gateway failed to start"
+            docker compose -f infra/docker-compose.ci.yml logs
+            exit 1
+          fi
+
+      # ── 8. Installer les dépendances frontend ──────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 9. Build du frontend ────────────────────────────────────────
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: http://localhost:8080
+
+      # ── 10. Démarrer le frontend en preview ─────────────────────────
+      - name: Start frontend (preview)
+        run: |
+          npm run preview -- --port 5173 &
+          sleep 5
+        env:
+          VITE_API_BASE_URL: http://localhost:8080
+
+      # ── 11. Lancer Cypress ──────────────────────────────────────────
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          browser: chrome
+          config: baseUrl=http://localhost:5173
+          wait-on: http://localhost:5173
+          wait-on-timeout: 60
+        env:
+          CYPRESS_BASE_URL: http://localhost:5173
+
+      # ── 12. Upload artifacts si échec ───────────────────────────────
+      - name: Upload Cypress screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+          retention-days: 7
+
+      # ── 13. Logs des services si échec ──────────────────────────────
+      - name: Dump service logs (on failure)
+        if: failure()
+        working-directory: infra
+        run: docker compose -f docker-compose.ci.yml logs --tail=100
