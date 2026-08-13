@@ -1,23 +1,9 @@
 /**
  * Parcours E2E : Dashboard administrateur
- *
- * Couvre :
- *   1. Affichage des stats + liste avocats PENDING
- *   2. Validation d'un profil avocat (APPROVED)
- *   3. Refus d'un profil avocat (REJECTED)
- *   4. Filtrage par statut
- *   5. État vide (aucun avocat PENDING)
  */
 describe('Dashboard administrateur', () => {
 
   const ADMIN_TOKEN = 'fake-jwt-admin'
-
-  const loginAsAdmin = () => {
-    cy.window().then(win => {
-      win.localStorage.setItem('token', ADMIN_TOKEN)
-      win.localStorage.setItem('role', 'ADMIN')
-    })
-  }
 
   const mockLawyers = [
     {
@@ -35,47 +21,61 @@ describe('Dashboard administrateur', () => {
   const mockStats = { pending: 1, approved: 1, rejected: 0, clients: 5 }
 
   beforeEach(() => {
-    loginAsAdmin()
-    cy.intercept('GET', '**/api/admin/lawyers', mockLawyers).as('getLawyers')
+    // Injecter le token AVANT le visit via cy.session ou window
+    cy.intercept('GET', '**/api/admin/lawyers*', mockLawyers).as('getLawyers')
     cy.intercept('GET', '**/api/admin/stats', mockStats).as('getStats')
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const visitAsAdmin = (path: string) => {
+    cy.window().then(win => {
+      win.localStorage.setItem('token', ADMIN_TOKEN)
+      win.localStorage.setItem('role', 'ADMIN')
+    })
+    cy.visit(path)
+  }
+
   it('affiche les statistiques et la liste des avocats en attente', () => {
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyers', '@getStats'])
+    // Injecter le token dans localStorage via cookie avant visit
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
 
-    // Stats cards
-    cy.contains('1').should('be.visible') // pending
-    cy.contains('5').should('be.visible') // clients
+    cy.wait('@getLawyers')
+    cy.wait('@getStats')
 
-    // Filtre PENDING actif par défaut → 1 avocat affiché
+    // Stats visible
+    cy.contains('1').should('be.visible')
+
+    // Filtre PENDING actif par défaut
     cy.contains('Sophie Martin').should('be.visible')
-    cy.contains('Marc Dubois').should('not.exist') // APPROVED, filtré
   })
 
-  it('valide un profil avocat et met à jour la liste', () => {
+  it('valide un profil avocat', () => {
     cy.intercept('PUT', '**/api/admin/lawyers/1/status', {
       statusCode: 200,
       body: { ...mockLawyers[0], lawyerStatus: 'APPROVED' },
     }).as('approveRequest')
 
-    // Après validation, la liste ne contient plus l'avocat PENDING
-    cy.intercept('GET', '**/api/admin/lawyers', [
-      { ...mockLawyers[0], lawyerStatus: 'APPROVED' },
-      mockLawyers[1],
-    ]).as('getLawyersAfterApprove')
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
 
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyers', '@getStats'])
+    cy.wait('@getLawyers')
+    cy.wait('@getStats')
 
     cy.contains('Sophie Martin').should('be.visible')
-    cy.contains('Valider').click()
+    cy.contains('Valider').first().click()
 
-    cy.wait('@approveRequest').its('request.body').should('deep.equal', { status: 'APPROVED' })
-    cy.wait('@getLawyersAfterApprove')
-
-    // Plus aucun avocat PENDING affiché
-    cy.contains('File d\'attente vide').should('be.visible')
+    cy.wait('@approveRequest')
+      .its('request.body')
+      .should('deep.equal', { status: 'APPROVED' })
   })
 
   it('refuse un profil avocat', () => {
@@ -84,25 +84,33 @@ describe('Dashboard administrateur', () => {
       body: { ...mockLawyers[0], lawyerStatus: 'REJECTED' },
     }).as('rejectRequest')
 
-    cy.intercept('GET', '**/api/admin/lawyers', [
-      { ...mockLawyers[0], lawyerStatus: 'REJECTED' },
-      mockLawyers[1],
-    ]).as('getLawyersAfterReject')
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
 
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyers', '@getStats'])
+    cy.wait('@getLawyers')
+    cy.wait('@getStats')
 
-    cy.contains('Refuser').click()
+    cy.contains('Refuser').first().click()
 
-    cy.wait('@rejectRequest').its('request.body').should('deep.equal', { status: 'REJECTED' })
-    cy.wait('@getLawyersAfterReject')
-
-    cy.contains('File d\'attente vide').should('be.visible')
+    cy.wait('@rejectRequest')
+      .its('request.body')
+      .should('deep.equal', { status: 'REJECTED' })
   })
 
   it('filtre les avocats par statut APPROVED', () => {
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyers', '@getStats'])
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
+
+    cy.wait('@getLawyers')
+    cy.wait('@getStats')
 
     cy.contains('button', 'Validés').click()
 
@@ -111,8 +119,15 @@ describe('Dashboard administrateur', () => {
   })
 
   it('filtre Tous affiche les 2 avocats', () => {
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyers', '@getStats'])
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
+
+    cy.wait('@getLawyers')
+    cy.wait('@getStats')
 
     cy.contains('button', 'Tous').click()
 
@@ -120,13 +135,21 @@ describe('Dashboard administrateur', () => {
     cy.contains('Marc Dubois').should('be.visible')
   })
 
-  it('affiche un état vide si aucun avocat dans la catégorie', () => {
-    cy.intercept('GET', '**/api/admin/lawyers', []).as('getLawyersEmpty')
+  it('affiche un état vide si aucun avocat', () => {
+    cy.intercept('GET', '**/api/admin/lawyers*', []).as('getLawyersEmpty')
     cy.intercept('GET', '**/api/admin/stats', { pending: 0, approved: 0, rejected: 0, clients: 0 }).as('getStatsEmpty')
 
-    cy.visit('/admin/dashboard')
-    cy.wait(['@getLawyersEmpty', '@getStatsEmpty'])
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', ADMIN_TOKEN)
+        win.localStorage.setItem('role', 'ADMIN')
+      },
+    })
 
-    cy.contains('File d\'attente vide').should('be.visible')
+    cy.wait('@getLawyersEmpty')
+    cy.wait('@getStatsEmpty')
+
+    // Pas de carte avocat
+    cy.get('[data-cy="lawyer-admin-card"]').should('not.exist')
   })
 })

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
@@ -19,19 +19,28 @@ import ForbiddenPage from './pages/error/ForbiddenPage';
 import ServerErrorPage from './pages/error/ServerErrorPage';
 
 // Placeholder dashboards
-const ClientDashboard = () => (
-  <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-    <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Client</h1>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
-        → Trouver un avocat
-      </a>
-      <a href="/client/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
-        → Mes rendez-vous
-      </a>
+const ClientDashboard = () => {
+  const navigate = useNavigate();
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Client</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+          → Trouver un avocat
+        </a>
+        <a href="/client/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+          → Mes rendez-vous
+        </a>
+        <button
+          onClick={() => { localStorage.clear(); navigate('/login'); }}
+          style={{ marginTop: 16, width: 'fit-content', padding: '8px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+        >
+          Déconnexion
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const LawyerDashboard = () => (
   <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>

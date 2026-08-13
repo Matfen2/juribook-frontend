@@ -145,14 +145,13 @@ describe('Parcours authentification', () => {
 
   // ── Déconnexion ────────────────────────────────────────────────────
   it('la déconnexion vide le localStorage et redirige vers /login', () => {
-    cy.window().then(win => {
-      win.localStorage.setItem('token', 'fake-jwt-client')
-      win.localStorage.setItem('role', 'CLIENT')
+    cy.visit('/client/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', 'fake-jwt-client')
+        win.localStorage.setItem('role', 'CLIENT')
+      },
     })
 
-    cy.visit('/client/dashboard')
-
-    // Cliquer sur le bouton de déconnexion (texte ou data-cy)
     cy.contains('Déconnexion').click()
 
     cy.url().should('include', '/login')
@@ -166,12 +165,13 @@ describe('Parcours authentification', () => {
   })
 
   it('affiche la page 403 si un CLIENT essaie d\'accéder au dashboard admin', () => {
-    cy.window().then(win => {
-      win.localStorage.setItem('token', 'fake-jwt-client')
-      win.localStorage.setItem('role', 'CLIENT')
+    cy.visit('/admin/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', 'fake-jwt-client')
+        win.localStorage.setItem('role', 'CLIENT')
+      },
     })
 
-    cy.visit('/admin/dashboard')
     cy.contains('403').should('be.visible')
     cy.contains('Accès interdit').should('be.visible')
   })

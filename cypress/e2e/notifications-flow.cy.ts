@@ -1,45 +1,41 @@
 /**
  * Parcours E2E : Notifications in-app
- *
- * Couvre :
- *   1. Badge de notification affiché quand unread-count > 0
- *   2. Badge absent quand unread-count = 0
- *   3. Marquer une notification comme lue
- *   4. Affichage de la liste des notifications
  */
 describe('Notifications in-app', () => {
 
   const CLIENT_TOKEN = 'fake-jwt-client'
 
-  const loginAsClient = () => {
-    cy.window().then(win => {
-      win.localStorage.setItem('token', CLIENT_TOKEN)
-      win.localStorage.setItem('role', 'CLIENT')
-    })
-  }
-
   beforeEach(() => {
-    loginAsClient()
     cy.intercept('GET', '**/api/bookings', { body: [] }).as('getBookings')
   })
 
   it('affiche un badge quand il y a des notifications non lues', () => {
     cy.intercept('GET', '**/api/notifications/unread-count', { body: { count: 3 } }).as('unreadCount')
 
-    cy.visit('/client/bookings')
+    cy.visit('/client/bookings', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', CLIENT_TOKEN)
+        win.localStorage.setItem('role', 'CLIENT')
+      },
+    })
     cy.wait('@unreadCount')
 
-    cy.getByCy('notification-bell').should('exist')
-    cy.getByCy('notification-badge').should('be.visible').and('contain', '3')
+    cy.getByCy('notification-bell-button').should('exist')
+    cy.getByCy('notification-unread-badge').should('be.visible').and('contain', '3')
   })
 
   it('n\'affiche pas de badge quand toutes les notifications sont lues', () => {
     cy.intercept('GET', '**/api/notifications/unread-count', { body: { count: 0 } }).as('unreadCount')
 
-    cy.visit('/client/bookings')
+    cy.visit('/client/bookings', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', CLIENT_TOKEN)
+        win.localStorage.setItem('role', 'CLIENT')
+      },
+    })
     cy.wait('@unreadCount')
 
-    cy.getByCy('notification-badge').should('not.exist')
+    cy.getByCy('notification-unread-badge').should('not.exist')
   })
 
   it('affiche la liste des notifications au clic sur la cloche', () => {
@@ -55,10 +51,15 @@ describe('Notifications in-app', () => {
       }],
     }).as('getNotifications')
 
-    cy.visit('/client/bookings')
+    cy.visit('/client/bookings', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', CLIENT_TOKEN)
+        win.localStorage.setItem('role', 'CLIENT')
+      },
+    })
     cy.wait('@unreadCount')
 
-    cy.getByCy('notification-bell').click()
+    cy.getByCy('notification-bell-button').click()
     cy.wait('@getNotifications')
 
     cy.contains('Sophie Martin').should('be.visible')
@@ -76,15 +77,20 @@ describe('Notifications in-app', () => {
     }).as('getNotifications')
     cy.intercept('PATCH', '**/api/notifications/1/read', { statusCode: 200, body: {} }).as('markRead')
 
-    cy.visit('/client/bookings')
+    cy.visit('/client/bookings', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('token', CLIENT_TOKEN)
+        win.localStorage.setItem('role', 'CLIENT')
+      },
+    })
     cy.wait('@unreadCount')
-    cy.getByCy('notification-bell').click()
+
+    cy.getByCy('notification-bell-button').click()
     cy.wait('@getNotifications')
 
     cy.get('[data-cy="notification-item"]').first().click()
     cy.wait('@markRead')
 
-    // Le badge doit disparaître ou décrémenter
-    cy.getByCy('notification-badge').should('not.exist')
+    cy.getByCy('notification-unread-badge').should('not.exist')
   })
 })
