@@ -28,7 +28,7 @@ interface Stats {
 // bookingApi.ts/lawyerApi.ts/authApi.ts/notificationApi.ts/analyticsApi.ts.
 // Laissé tel quel ici (pas demandé), mais à harmoniser un jour pour éviter
 // une 2e config de baseURL/token à maintenir en parallèle.
-const adminAxios = axios.create({ baseURL: 'http://localhost:8081' })
+const adminAxios = axios.create({ baseURL: 'https://api.juribook.fr' })
 adminAxios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`

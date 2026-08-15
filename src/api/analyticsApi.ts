@@ -8,7 +8,7 @@ import axios from 'axios'
 // n'est pas encore configuré côté gateway, ces appels échoueront
 // (404/erreur réseau) sans que ce soit un bug de ce fichier.
 const analyticsAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 })
 

@@ -3,7 +3,7 @@ import axios from 'axios'
 // Cohérent avec analyticsApi.ts, bookingApi.ts, lawyerApi.ts, authApi.ts :
 // passe par l'api-gateway, jamais directement sur audit-service.
 const auditAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 })
 

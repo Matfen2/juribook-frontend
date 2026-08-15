@@ -2,11 +2,11 @@ import axios from 'axios'
 
 // Cohérent avec analyticsApi.ts/auditApi.ts : passe par l'api-gateway.
 // ⚠️ Contrairement à AdminDashboard.tsx qui pointe en dur sur
-// localhost:8081 (incohérence déjà signalée, non corrigée
+// api.juribook.fr (incohérence déjà signalée, non corrigée
 // sans confirmation), ce nouveau fichier suit le pattern gateway
 // standard des autres *Api.ts du projet.
 const adminUserAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 })
 
