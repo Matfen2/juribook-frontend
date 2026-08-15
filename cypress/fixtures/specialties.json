@@ -1,0 +1,5 @@
+[
+  { "id": 1, "name": "Droit du travail", "slug": "droit-du-travail", "description": "Litiges employeur/salarié, licenciements, harcèlement" },
+  { "id": 2, "name": "Droit de la famille", "slug": "droit-famille", "description": "Divorce, garde d'enfants, succession" },
+  { "id": 3, "name": "Droit pénal", "slug": "droit-penal", "description": "Défense pénale, accidents, fraudes" }
+]

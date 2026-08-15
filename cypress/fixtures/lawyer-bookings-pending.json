@@ -1,0 +1,13 @@
+[
+  {
+    "id": 900,
+    "lawyerId": 10,
+    "timeSlotId": 501,
+    "status": "PENDING",
+    "reason": "Litige avec mon employeur",
+    "date": "2026-07-06",
+    "startTime": "09:00:00",
+    "endTime": "09:30:00",
+    "createdAt": "2026-07-02T09:00:00"
+  }
+]

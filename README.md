@@ -1,144 +1,177 @@
-# JuriBook - Frontend
+<div align="center">
 
-Interface web de **JuriBook**, le Doctolib des avocats.  
-Permet aux clients de trouver et réserver un avocat, et aux avocats de gérer leur agenda.
+# ⚖️ JuriBook - Frontend
+
+### Le Doctolib des avocats
+
+**Application React 19 / TypeScript déployée en production**
+
+[![Live](https://img.shields.io/badge/🌐_Live-juribook.fr-4F46E5?style=for-the-badge)](https://juribook.fr)
+[![Cypress](https://img.shields.io/badge/Cypress-43_tests_✅-17202C?style=for-the-badge&logo=cypress)](./cypress/e2e)
+[![React](https://img.shields.io/badge/React_19-TypeScript-61DAFB?style=for-the-badge&logo=react)](https://juribook.fr)
+
+</div>
 
 ---
 
-## Stack technique
+## 🔗 Liens
 
-| Outil | Rôle |
+| | |
 |---|---|
-| React 19 + TypeScript | UI et typage |
-| Vite | Bundler et dev server |
-| Tailwind CSS v4 | Styles utilitaires |
-| React Router v7 | Navigation SPA |
-| Axios | Appels HTTP vers l'auth-service |
-| Framer Motion | Animations des pages |
-| Tabler Icons | Icônes (CDN) |
-| Vitest + Testing Library | Tests unitaires composants |
+| 🌐 **Application live** | https://juribook.fr |
+| 🔧 **API Gateway** | https://api.juribook.fr |
+| 📦 **Repo K8s / Terraform** | [juribook-k8s-manifests](https://github.com/Matfen2/juribook-k8s-manifests) |
+| 🔐 **Auth Service** | [juribook-auth-service](https://github.com/Matfen2/juribook-auth-service) |
+| ⚖️ **Lawyer Service** | [juribook-lawyer-service](https://github.com/Matfen2/juribook-lawyer-service) |
+| 📅 **Booking Service** | [juribook-booking-service](https://github.com/Matfen2/juribook-booking-service) |
+| 🔔 **Notification Service** | [juribook-notification-service](https://github.com/Matfen2/juribook-notification-service) |
+| 📋 **Audit Service** | [juribook-audit-service](https://github.com/Matfen2/juribook-audit-service) |
+| 🌐 **API Gateway** | [juribook-api-gateway](https://github.com/Matfen2/juribook-api-gateway) |
 
 ---
 
-## Structure du projet
+## 🏗️ Architecture
+
+JuriBook est une plateforme **microservices event-driven** composée de 6 services Spring Boot 4 / Java 21 communiquant via **Apache Kafka KRaft** (asynchrone) et REST (synchrone), exposés via une **Spring Cloud Gateway** centralisant la validation JWT.
 
 ```
-src/
-├── api/
-│   └── authApi.ts              # registerClient, registerLawyer, login
-├── context/
-│   └── AuthContext.tsx         # Gestion session (token + rôle)
-├── pages/
-│   └── auth/
-│       ├── LoginPage.tsx
-│       ├── RegisterClientPage.tsx
-│       └── RegisterLawyerPage.tsx
-├── test/
-│   ├── setup.ts                # Mock localStorage + jest-dom
-│   └── pages/
-│       ├── LoginPage.test.tsx
-│       ├── RegisterClientPage.test.tsx
-│       └── RegisterLawyerPage.test.tsx
-├── App.tsx                     # Routes + ProtectedRoute par rôle
-└── main.tsx
+https://juribook.fr          https://api.juribook.fr
+      │                               │
+  [Frontend]                    [API Gateway]
+  React 19                    Spring Cloud Gateway
+  Nginx / K8s                   JWT validation
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              │               │               │               │
+        [auth-service]  [lawyer-service] [booking-service] [notif-service]
+         Java 21          Java 21          Java 21          Java 21
+         Spring Boot      Spring Boot      Spring Boot      Spring Boot
+         PostgreSQL       PostgreSQL       PostgreSQL       PostgreSQL
+                                  │
+                            [Kafka KRaft]
+                                  │
+                          [audit-service]
+                           Java 21 / PG
+```
+
+**Infrastructure :** Scaleway Kapsule (Kubernetes), RDB PostgreSQL, provisionné via Terraform, CI/CD GitHub Actions → GHCR → Kapsule, SSL Let's Encrypt via cert-manager.
+
+---
+
+## ✨ Fonctionnalités
+
+### Rôle CLIENT
+- Inscription / connexion avec JWT (access 24h + refresh 7j rotatif)
+- Recherche d'avocats par spécialité, ville, tarif
+- Consultation des profils et créneaux disponibles
+- Réservation en ligne avec motif
+- Historique des rendez-vous (onglets À venir / Passés / Annulés)
+- Upload de documents sur une réservation
+- Dépôt d'avis après consultation terminée
+- Notifications in-app avec badge de non-lu
+
+### Rôle AVOCAT
+- Inscription (statut PENDING → validation admin)
+- Gestion des disponibilités récurrentes par créneau
+- Tableau de bord : demandes à traiter, confirmer ou refuser
+
+### Rôle ADMIN - 5 volets
+- **Validation** des profils avocats (Valider / Refuser)
+- **Analytics** temps réel : KPIs réservations, taux d'annulation, spécialités, heures de pointe
+- **Audit** : journal des événements Kafka par utilisateur ou réservation
+- **Alertes d'abus** : comptes suspendus automatiquement (>5 annulations/7j ou >3 avis 1★/24h)
+- **Modération des avis** : masquer / démasquer / supprimer
+
+---
+
+## 🧪 Tests
+
+### 43 tests Cypress E2E ✅
+
+| Spec | Tests | Parcours |
+|---|---|---|
+| `auth-flow.cy.ts` | 8 | Inscription, connexion, déconnexion, routes protégées |
+| `search-to-detail.cy.ts` | 6 | Recherche → fiche avocat |
+| `booking-confirmation-flow.cy.ts` | 3 | Réservation → confirmation/refus/conflit 409 |
+| `document-upload.cy.ts` | 6 | Upload documents sur réservation |
+| `reviews.cy.ts` | 4 | Avis sur fiche avocat |
+| `notifications-flow.cy.ts` | 4 | Notifications in-app |
+| `admin-flow.cy.ts` | 6 | Dashboard admin - validation avocats |
+| `error-pages.cy.ts` | 6 | Pages 404 / 403 / 500 |
+| **Total** | **43** | **Tous parcours critiques** |
+
+```bash
+npm run cypress:open   # mode interactif
+npm run cypress:run    # mode headless (CI)
+```
+
+### 40 tests unitaires Vitest
+
+```bash
+npm run test
+npm run test:coverage
 ```
 
 ---
 
-## Installation
+## 🛠️ Stack technique
+
+| Couche | Technologie |
+|---|---|
+| Framework | React 19 / TypeScript / Vite |
+| Routing | React Router 7 |
+| Style | Tailwind CSS v4 / Framer Motion |
+| HTTP | Axios |
+| Tests E2E | Cypress 13 |
+| Tests unitaires | Vitest + Testing Library |
+| Conteneur | Docker multi-stage (Node 20 → Nginx Alpine) |
+| CI/CD | GitHub Actions → GHCR → Scaleway Kapsule |
+
+---
+
+## 🚀 Démarrage local
 
 ```bash
 npm install
-```
-
----
-
-## Démarrage
-
-```bash
+cp .env.example .env
 npm run dev
 ```
 
-L'application démarre sur [http://localhost:5173](http://localhost:5173).
-
-> Le proxy Vite redirige `/api` vers `http://localhost:8080` (api-gateway).  
-> L'auth-service doit tourner sur le port `8081`.
-
----
-
-## Scripts disponibles
-
-```bash
-npm run dev           # Démarrer le serveur de développement
-npm run build         # Build de production (tsc + vite build)
-npm test              # Lancer les tests Vitest (mode run)
-npm run test:watch    # Lancer les tests en mode watch
-npm run test:coverage # Rapport de couverture de code
-npm run preview       # Prévisualiser le build de production
-```
-
----
-
-## Tests
-
-Les tests utilisent **Vitest** + **@testing-library/react**.
-
-```bash
-npm test
-```
-
-```
-Test Files  3 passed (3)
-     Tests  40 passed (40)
-  Duration  2.12s
-```
-
-### Couverture
-
-| Fichier | Tests |
-|---|---|
-| `LoginPage.test.tsx` | 13 tests : rendu, soumission CLIENT/LAWYER/ADMIN, erreurs API, état bouton |
-| `RegisterClientPage.test.tsx` | 15 tests : rendu, mise à jour champs, effacement erreur, soumission, erreurs |
-| `RegisterLawyerPage.test.tsx` | 12 tests : rendu champs personnels + professionnels, soumission, erreurs |
-
----
-
-## Pages auth
-
-### `/login` - Connexion
-- Formulaire email + mot de passe
-- Redirection automatique selon le rôle : `CLIENT → /client/dashboard`, `LAWYER → /lawyer/dashboard`, `ADMIN → /admin/dashboard`
-
-### `/register` - Inscription client
-- Formulaire nom, email, mot de passe, téléphone (optionnel)
-- Rôle `CLIENT` assigné automatiquement
-
-### `/register/lawyer` - Inscription avocat
-- Formulaire infos personnelles + professionnelles (numéro de barreau, spécialité, ville)
-- Statut `PENDING` : validation manuelle par un administrateur sous 48h
-
----
-
-## Connexion au backend
-
-Le frontend communique avec l'**auth-service** (port 8081) via `src/api/authApi.ts`.
-
-| Endpoint | Méthode | Description |
-|---|---|---|
-| `/api/auth/register` | POST | Inscription client |
-| `/api/auth/register/lawyer` | POST | Inscription avocat |
-| `/api/auth/login` | POST | Connexion - retourne JWT + refresh token |
-
-Le token JWT est stocké dans `localStorage` via `AuthContext` (`saveUser(token, role)`).
-
----
-
-## Variables d'environnement
-
-Créer un fichier `.env.local` à la racine :
-
 ```env
-VITE_API_URL=http://localhost:8081
+# .env
+VITE_API_GATEWAY_URL=http://localhost:8080
 ```
 
-> En développement, le proxy Vite gère la redirection. Cette variable est utilisée en production.
+> Les services backend doivent tourner localement ou pointer vers l'environnement de staging.
+> Voir [GETTING_STARTED.md](https://github.com/Matfen2/juribook-k8s-manifests) pour démarrer l'ensemble de la stack.
+
+---
+
+## 📁 Structure
+
+```
+src/
+├── api/              # Clients Axios par service
+├── context/          # AuthContext (JWT + rôle)
+├── pages/
+│   ├── auth/         # Login, Register client/avocat
+│   ├── search/       # Recherche avec filtres
+│   ├── lawyer/       # Profil, disponibilités, bookings avocat
+│   ├── client/       # Historique réservations client
+│   ├── admin/        # 5 volets admin
+│   └── error/        # Pages 403 / 404 / 500
+└── components/       # NotificationBell, DocumentUpload, ReviewsList
+
+cypress/
+└── e2e/              # 43 tests répartis en 8 specs
+```
+
+---
+
+## 👤 Auteur
+
+**Mathieu Fenouil** - Développeur Full-Stack (Java / Spring Boot + React / TypeScript)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mathieu-fenouil-développeur-full-stack/)
+[![GitHub](https://img.shields.io/badge/GitHub-000?style=flat&logo=github)](https://github.com/Matfen2)
+[![Email](https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white)](mailto:matfen3.05@gmail.com)

@@ -1,0 +1,130 @@
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterClientPage from './pages/auth/RegisterClientPage';
+import RegisterLawyerPage from './pages/auth/RegisterLawyerPage';
+import SearchPage from './pages/search/SearchPage';
+import LawyerDetailPage from './pages/lawyer/LawyerDetailPage';
+import AvailabilityCalendarPage from './pages/lawyer/AvailabilityCalendarPage';
+import LawyerBookingsPage from './pages/lawyer/LawyerBookingsPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
+import AdminAuditPage from './pages/admin/AdminAuditPage';
+import AdminAbuseAlertsPage from './pages/admin/AdminAbuseAlertsPage';
+import AdminReviewModerationPage from './pages/admin/AdminReviewModerationPage';
+import ClientBookingsPage from './pages/client/ClientBookingsPage';
+import NotFoundPage from './pages/error/NotFoundPage';
+import ForbiddenPage from './pages/error/ForbiddenPage';
+import ServerErrorPage from './pages/error/ServerErrorPage';
+
+// Placeholder dashboards
+const ClientDashboard = () => {
+  const navigate = useNavigate();
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Client</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <a href="/search" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+          → Trouver un avocat
+        </a>
+        <a href="/client/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+          → Mes rendez-vous
+        </a>
+        <button
+          onClick={() => { localStorage.clear(); navigate('/login'); }}
+          style={{ marginTop: 16, width: 'fit-content', padding: '8px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+        >
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const LawyerDashboard = () => (
+  <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Dashboard Avocat</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <a href="/lawyer/availabilities" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Gérer mes disponibilités
+      </a>
+      <a href="/lawyer/bookings" style={{ color: '#4F46E5', fontWeight: 600, textDecoration: 'none' }}>
+        → Mes rendez-vous
+      </a>
+    </div>
+  </div>
+);
+
+const ProtectedRoute = ({ children, role }: { children: ReactElement; role: string }) => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== role) return <ForbiddenPage />;
+  return children;
+};
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/"                element={<Navigate to="/login" replace />} />
+      <Route path="/login"           element={<LoginPage />} />
+      <Route path="/register"        element={<RegisterClientPage />} />
+      <Route path="/register/lawyer" element={<RegisterLawyerPage />} />
+
+      {/* Recherche publique */}
+      <Route path="/search"          element={<SearchPage />} />
+      <Route path="/lawyers/:id"     element={<LawyerDetailPage />} />
+
+      {/* Pages d'erreur */}
+      <Route path="/403"             element={<ForbiddenPage />} />
+      <Route path="/500"             element={<ServerErrorPage />} />
+
+      {/* Dashboards protégés */}
+      <Route path="/client/dashboard" element={
+        <ProtectedRoute role="CLIENT"><ClientDashboard /></ProtectedRoute>
+      } />
+      <Route path="/client/bookings" element={
+        <ProtectedRoute role="CLIENT"><ClientBookingsPage /></ProtectedRoute>
+      } />
+      <Route path="/lawyer/dashboard" element={
+        <ProtectedRoute role="LAWYER"><LawyerDashboard /></ProtectedRoute>
+      } />
+      <Route path="/lawyer/availabilities" element={
+        <ProtectedRoute role="LAWYER"><AvailabilityCalendarPage /></ProtectedRoute>
+      } />
+      <Route path="/lawyer/bookings" element={
+        <ProtectedRoute role="LAWYER"><LawyerBookingsPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/dashboard" element={
+        <ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>
+      } />
+      <Route path="/admin/analytics" element={
+        <ProtectedRoute role="ADMIN"><AdminAnalyticsPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/audit" element={
+        <ProtectedRoute role="ADMIN"><AdminAuditPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/abuse-alerts" element={
+        <ProtectedRoute role="ADMIN"><AdminAbuseAlertsPage /></ProtectedRoute>
+      } />
+      <Route path="/admin/reviews" element={
+        <ProtectedRoute role="ADMIN"><AdminReviewModerationPage /></ProtectedRoute>
+      } />
+
+      {/* 404 - doit être en dernier */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
