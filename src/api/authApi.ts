@@ -7,7 +7,7 @@ import axios from 'axios';
 // que toutes convergent vers le même port (8080). Reste configurable
 // via variable d'environnement, conformément à la review d'Abdelhadi.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 });
 

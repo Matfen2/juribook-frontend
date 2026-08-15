@@ -3,7 +3,7 @@ import axios from 'axios'
 // Instance axios pointant vers l'api-gateway, plus directement vers
 // notification-service depuis l'introduction de la gateway (port unique 8080).
 const notificationAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 })
 

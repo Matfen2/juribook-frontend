@@ -3,7 +3,7 @@ import axios from 'axios'
 // Cohérent avec les autres *Api.ts : passe par l'api-gateway.
 // /api/reviews/** est déjà routé vers lawyer-service (application.yaml).
 const reviewModerationAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8080',
+  baseURL: 'https://api.juribook.fr',
   headers: { 'Content-Type': 'application/json' },
 })
 
