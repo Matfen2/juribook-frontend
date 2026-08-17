@@ -39,7 +39,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex bg-slate-50">
 
-      {/* ── Colonne gauche — branding ── */}
+      {/* ── Colonne gauche : branding ── */}
       <motion.div
         className="hidden lg:flex w-[44%] bg-blue-700 flex-col p-10 relative overflow-hidden"
         initial={{ x: -60, opacity: 0 }}
@@ -95,7 +95,7 @@ const LoginPage = () => {
         </div>
       </motion.div>
 
-      {/* ── Colonne droite — formulaire ── */}
+      {/* ── Colonne droite : formulaire ── */}
       <div className="flex-1 flex items-center justify-center px-8 py-8">
         <motion.div
           className="bg-white border border-slate-200 rounded-2xl p-10 w-full max-w-md"

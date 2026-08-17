@@ -212,7 +212,7 @@ export default function AdminAuditPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Journal d'audit</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
-            Historique complet et immuable — tous les événements de la plateforme, tous topics confondus
+            Historique complet et immuable : tous les événements de la plateforme, tous topics confondus
           </p>
         </div>
       </motion.div>

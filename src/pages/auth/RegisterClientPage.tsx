@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { registerClient } from '../../api/authApi';
 
-// Constantes déclarées hors composant, suite à la review d'Abdelhadi (mentor) :
+// Constantes déclarées hors composant :
 // ces tableaux ne changent jamais, les recréer à chaque render est un gaspillage
 // inutile (nouvelle référence d'objet à chaque rendu, alloue de la mémoire pour rien).
 const FIELDS = [
@@ -175,7 +175,7 @@ const RegisterClientPage = () => {
               animate={{ opacity: 1, y: 0 }}
             >
               <i className="ti ti-circle-check text-emerald-500 text-base" aria-hidden="true" />
-              <p className="text-sm text-emerald-700">{success} — Redirection en cours...</p>
+              <p className="text-sm text-emerald-700">{success} - Redirection en cours...</p>
             </motion.div>
           )}
 

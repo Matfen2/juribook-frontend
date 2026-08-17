@@ -240,7 +240,7 @@ export default function AvailabilityCalendarPage() {
           </div>
         )}
 
-        {/* Grille semaine — scroll horizontal sur mobile */}
+        {/* Grille semaine - scroll horizontal sur mobile */}
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' as const, marginBottom: 4 }}>
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, minWidth: 560,
@@ -365,7 +365,7 @@ export default function AvailabilityCalendarPage() {
         <CreateAvailabilityModal
           lawyerId={lawyerId}
           onClose={() => setShowAvailModal(false)}
-          onCreated={async (count) => { setShowAvailModal(false); showToast(`Disponibilité créée — ${count} créneaux générés`); await loadWeek() }}
+          onCreated={async (count) => { setShowAvailModal(false); showToast(`Disponibilité créée : ${count} créneaux générés`); await loadWeek() }}
         />
       )}
 
@@ -520,7 +520,7 @@ function BlockPeriodModal({ lawyerId, onClose, onBlocked }: {
         <input type="text" value={reason} onChange={e => setReason(e.target.value)} placeholder="Congés, formation..." style={inputStyle} />
 
         <p style={{ fontSize: 11, color: '#94A3B8', marginTop: -4, marginBottom: 12 }}>
-          Seuls les créneaux libres seront bloqués — les rendez-vous déjà réservés ne sont jamais affectés.
+          Seuls les créneaux libres seront bloqués, les rendez-vous déjà réservés ne sont jamais affectés.
         </p>
 
         <button type="submit" disabled={submitting}

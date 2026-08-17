@@ -217,7 +217,7 @@ export default function AdminReviewModerationPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Modération des avis</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: 0 }}>
-            Triés par note croissante — les moins bien notés en priorité, aucun signalement côté client à ce stade
+            Triés par note croissante, les moins bien notés en priorité, aucun signalement côté client à ce stade
           </p>
         </div>
       </div>
