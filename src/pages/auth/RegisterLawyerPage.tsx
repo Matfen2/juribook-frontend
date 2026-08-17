@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { registerLawyer } from '../../api/authApi';
 
-// Constantes déclarées hors composant, suite à la review d'Abdelhadi (mentor) :
+// Constantes déclarées hors composant :
 // ces tableaux ne changent jamais, les recréer à chaque render est un gaspillage
 // inutile (nouvelle référence d'objet à chaque rendu, alloue de la mémoire pour rien).
 const PERSONAL_FIELDS = [

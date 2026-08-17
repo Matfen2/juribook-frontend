@@ -79,7 +79,7 @@ function Section({ title, icon, color, children }: { title: string; icon: string
   )
 }
 
-// ── Réservation — Sprint 3.6 (sélection) + Sprint 4.10 (confirmation réelle) ──
+// ── Réservation - Sélection + Confirmation réelle ──
 // Sélecteur de date + créneaux libres du jour (GET /slots), motif de
 // consultation, puis POST /api/bookings. Réservation en 2 clics depuis
 // la fiche avocat : 1) cliquer un créneau, 2) cliquer "Confirmer" (le
@@ -119,7 +119,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
   const [error, setError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
 
-  // ── État du formulaire de réservation (Sprint 4.10) ──────
+  // ── État du formulaire de réservation ──────
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
@@ -168,7 +168,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
       const status = e.response?.status
 
       if (status === 409) {
-        // Le créneau vient d'être pris par quelqu'un d'autre — on le retire
+        // Le créneau vient d'être pris par quelqu'un d'autre, on le retire
         // de la liste plutôt que de laisser l'utilisateur retenter dans le vide.
         setSlots(prev => prev.filter(s => s.id !== selectedSlot.id))
         setSelectedSlot(null)
@@ -240,7 +240,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
         <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
           <i className="ti ti-calendar-off" style={{ fontSize: 28, color: '#CBD5E1' }} aria-hidden />
           <p style={{ fontSize: 13, color: '#94A3B8', margin: '8px 0 0' }}>
-            Aucun créneau libre ce jour-là — essayez une autre date
+            Aucun créneau libre ce jour-là, essayez une autre date
           </p>
         </div>
       )}
@@ -373,7 +373,7 @@ function BookingSection({ lawyerId, available }: { lawyerId: number; available: 
               </p>
               <p style={{ fontSize: 12.5, color: '#047857', margin: 0, lineHeight: 1.5 }}>
                 {selectedSlot && (
-                  <>{formatSlotDate(selectedSlot.date)} à {formatHM(selectedSlot.startTime)} — en attente de confirmation par l'avocat.</>
+                  <>{formatSlotDate(selectedSlot.date)} à {formatHM(selectedSlot.startTime)}, en attente de confirmation par l'avocat.</>
                 )}
               </p>
             </div>
@@ -418,7 +418,7 @@ export default function LawyerDetailPage() {
 
   // SEO dynamique selon le profil avocat
   useSEO({
-    title: lawyer ? `Me ${lawyer.name} — Avocat` : 'Profil avocat',
+    title: lawyer ? `Me ${lawyer.name} - Avocat` : 'Profil avocat',
     description: lawyer?.bio
       ? `${lawyer.bio.slice(0, 120)}...`
       : 'Consultez le profil de cet avocat sur JuriBook, prenez rendez-vous en ligne.',

@@ -47,7 +47,6 @@
 /* ═══════════════════════════════════════════
    RESPONSIVE - SearchPage
    ═══════════════════════════════════════════ */
-
 /* Grille résultats : 1 col mobile, 2 tablette, 3 desktop */
 .search-results-grid {
   display: grid;
@@ -111,7 +110,6 @@
 /* ═══════════════════════════════════════════
    RESPONSIVE - Pages communes (header sticky)
    ═══════════════════════════════════════════ */
-
 /* Padding horizontal réduit sur mobile */
 @media (max-width: 640px) {
   main {

@@ -193,7 +193,7 @@ export default function SearchPage() {
         if (!ctrl.signal.aborted) setResults(res.data)
       } catch {
         if (!ctrl.signal.aborted)
-          setError('Impossible de joindre le lawyer-service. Vérifiez qu\'il est démarré sur le port 8082.')
+          setError('Impossible de charger les avocats. Veuillez réessayer dans un instant.')
       } finally {
         if (!ctrl.signal.aborted) setLoading(false)
       }

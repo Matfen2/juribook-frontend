@@ -317,7 +317,7 @@ export default function AdminAnalyticsPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Statistiques temps réel</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
-            Alimentées en direct depuis les événements Kafka — jamais de calcul sur les tables transactionnelles
+            Alimentées en direct depuis les événements Kafka, jamais de calcul sur les tables transactionnelles
           </p>
         </div>
       </motion.div>
@@ -395,9 +395,6 @@ export default function AdminAnalyticsPage() {
         </Section>
 
         {/* Top spécialités : réservées vs recherchées, côte à côte */}
-        {/* ⚠️ Choix par défaut faute de réponse confirmée : affichage des
-            deux jeux de données côte à côte. Si tu voulais seulement l'un
-            des deux, dis-le moi et je retire l'autre colonne. */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
           <Section title="Spécialités les plus RÉSERVÉES" icon="ti-gavel" color="#059669">
             {loadingStatic

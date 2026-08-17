@@ -174,7 +174,7 @@ export default function AdminAbuseAlertsPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>Alertes d'abus détectés</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: 0 }}>
-            Comptes suspendus automatiquement par le système (annulations ou avis 1★ répétés) — jamais une désactivation manuelle ou un refus de profil
+            Comptes suspendus automatiquement par le système (annulations ou avis 1★ répétés), jamais une désactivation manuelle ou un refus de profil
           </p>
         </div>
       </div>
